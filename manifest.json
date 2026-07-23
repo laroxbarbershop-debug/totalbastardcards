@@ -1,0 +1,11 @@
+{
+  "name": "TBC — Total Bastard Cards",
+  "short_name": "TBC",
+  "icons": [
+    { "src": "cctt-favicon.png", "sizes": "2048x2048", "type": "image/png" }
+  ],
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#0a0a0c",
+  "theme_color": "#0a0a0c"
+}

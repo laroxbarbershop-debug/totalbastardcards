@@ -1,0 +1,2888 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="robots" content="noindex, nofollow">
+<title>TBC — Total Bastard Cards</title>
+<link rel="icon" type="image/png" href="cctt-favicon.png">
+<link rel="apple-touch-icon" href="cctt-favicon.png">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0a0a0c">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="TBC">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Oswald:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --gold:#c9a24b;
+  --gold-bright:#e8cd85;
+  --gold-dim:#8a6f33;
+  --red:#a83232;
+  --felt:#14161a;
+  --card-face:#1d1f24;
+  --ink:#e8e4da;
+  --ink-dim:#9a948a;
+  --cardW: min(250px, 42vw, 31vh);
+  --cardH: calc(var(--cardW) * 1.76);
+  --miniW: calc(var(--cardW) * 0.34);
+  --miniH: calc(var(--miniW) * 1.62);
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;overflow:hidden;}
+body{
+  background:#0a0a0c;
+  font-family:"Oswald","Segoe UI",system-ui,sans-serif;
+  color:var(--ink);
+  user-select:none;
+}
+
+/* ============ THE TABLE ============ */
+#table{
+  position:fixed;inset:0;
+  background:
+    radial-gradient(ellipse at 50% 42%, rgba(255,240,200,0.05), transparent 62%),
+    repeating-linear-gradient(45deg, rgba(255,255,255,0.008) 0 2px, transparent 2px 4px),
+    repeating-linear-gradient(-45deg, rgba(0,0,0,0.05) 0 2px, transparent 2px 4px),
+    radial-gradient(ellipse at 50% 50%, #191c21 0%, var(--felt) 55%, #0c0d10 100%);
+  border:10px solid transparent;
+  border-image:linear-gradient(160deg,#3a2a18,#241a0f 30%,#4a3520 50%,#1c130a 80%,#332414) 1;
+  box-shadow:inset 0 0 120px rgba(0,0,0,0.75);
+}
+
+/* ============ ZONES ============ */
+.score{
+  position:absolute;
+  display:flex;flex-direction:column;align-items:center;gap:2px;
+  z-index:5;
+}
+.score .num{
+  font-family:"Cinzel",Georgia,serif;
+  font-size:clamp(26px,5vh,40px);font-weight:700;color:var(--gold-bright);
+  font-variant-numeric:tabular-nums;line-height:1;
+  text-shadow:0 2px 8px rgba(0,0,0,0.8);
+}
+.score .who{
+  font-size:10px;letter-spacing:2.5px;color:var(--ink-dim);font-weight:600;
+}
+#oppScore{top:calc(12px + env(safe-area-inset-top));left:16px;}
+#playerScore{bottom:calc(12px + env(safe-area-inset-bottom));right:16px;}
+
+.pile{
+  position:absolute;
+  width:calc(var(--miniW) + 34px);
+  height:calc(var(--miniH) + 30px);
+  z-index:4;
+}
+#oppPile{top:calc(12px + env(safe-area-inset-top));right:16px;}
+#playerPile{bottom:calc(12px + env(safe-area-inset-bottom));left:16px;}
+.pile .mini{
+  position:absolute;left:0;top:0;
+  width:var(--miniW);height:var(--miniH);
+  border-radius:6px;
+  border:1px solid rgba(201,162,75,0.35);
+  box-shadow:0 3px 8px rgba(0,0,0,0.6);
+  overflow:hidden;
+  background:var(--card-face);
+}
+.pile .mini .mart{aspect-ratio:1/1;margin:2px 2px 0;border-radius:3px;
+  border:1px solid rgba(201,162,75,0.4);
+  position:relative;overflow:hidden;
+  display:flex;align-items:center;justify-content:center;
+  font-family:"Cinzel",Georgia,serif;font-weight:700;color:rgba(255,255,255,0.85);
+  font-size:calc(var(--miniW) * 0.32);}
+.pile .mini .mname{padding:1px 3px;font-size:7px;letter-spacing:0.3px;
+  color:var(--ink);overflow:hidden;line-height:1.15;font-weight:600;}
+
+/* ============ DECK ============ */
+#deck{
+  position:relative;flex-shrink:0;
+  width:calc(var(--cardW) * 0.42);height:calc(var(--cardW) * 0.42 * 1.45);
+}
+#deck .deckcard{
+  position:absolute;inset:0;border-radius:8px;
+}
+#deck .deckcard:nth-child(1){transform:translate(3px,3px);}
+#deck .deckcard:nth-child(2){transform:translate(1.5px,1.5px);}
+#deckCount{
+  position:absolute;top:-10px;right:-10px;
+  min-width:24px;height:24px;padding:0 6px;
+  background:#0d0d10;border:1px solid var(--gold-dim);border-radius:12px;
+  color:var(--gold-bright);font-size:12px;font-weight:700;
+  display:flex;align-items:center;justify-content:center;
+  font-variant-numeric:tabular-nums;z-index:5;
+  box-shadow:0 2px 6px rgba(0,0,0,0.6);
+}
+#deck.drawing .deckcard:last-of-type{animation:deckPulse 0.35s ease;}
+@keyframes deckPulse{50%{transform:translate(0,-5px);}}
+
+/* ============ TIE POT ============ */
+#pot{
+  display:none;flex-direction:column;align-items:center;gap:3px;
+}
+#pot.show{display:flex;}
+#pot .potcards{position:relative;width:calc(var(--miniW)*0.9);height:calc(var(--miniH)*0.9);}
+#pot .potcards div{position:absolute;inset:0;border-radius:5px;}
+#pot .lbl{font-size:9px;letter-spacing:2px;color:var(--ink-dim);font-weight:600;}
+#pot .n{font-size:14px;color:var(--gold-bright);font-weight:700;}
+
+/* ============ BATTLE AREA ============ */
+/* cards side by side, banner strip under them, deck + pot below that */
+#battle{
+  position:absolute;inset:0;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:clamp(8px,1.8vh,18px);
+  z-index:3;
+}
+#slots{display:flex;gap:clamp(14px,5vw,36px);}
+.slot{
+  width:var(--cardW);height:var(--cardH);
+  position:relative;
+  perspective:1100px;
+}
+#lower{display:flex;align-items:flex-start;gap:30px;}
+
+/* in Top Trumps there is no shared deck or capture piles — hands hold everything */
+#table.trumps #deck{display:none;}
+#table.trumps #oppPile,#table.trumps #playerPile{display:none;}
+#table.trumps #playerScore .who{content:"";}
+
+#banner{
+  max-width:96vw;
+  height:32px;padding:0 34px;
+  display:flex;align-items:center;justify-content:center;
+  text-align:center;white-space:nowrap;
+  font-family:"Cinzel",Georgia,serif;
+  font-size:clamp(13px,2.2vh,17px);font-weight:700;letter-spacing:2.5px;
+  color:var(--gold-bright);
+  text-shadow:0 0 18px rgba(0,0,0,0.9),0 2px 4px #000;
+  opacity:0;transition:opacity 0.3s;
+  background:linear-gradient(90deg,transparent,rgba(10,10,12,0.85) 18%,rgba(10,10,12,0.85) 82%,transparent);
+}
+#banner.show{opacity:1;}
+#banner.red{color:#d96b6b;}
+
+/* ============ CARDS ============ */
+.card{
+  position:absolute;inset:0;
+  cursor:default;
+}
+.card .flip{
+  position:absolute;inset:0;
+  transform-style:preserve-3d;-webkit-transform-style:preserve-3d;
+  transition:transform 0.65s cubic-bezier(0.4,0.1,0.2,1);
+}
+.card.facedown .flip{transform:rotateY(180deg);}
+.face{
+  position:absolute;inset:0;
+  backface-visibility:hidden;-webkit-backface-visibility:hidden;
+  /* forces each face onto its own compositing layer — without this, some
+     mobile browsers let the rotated-away face's content bleed through
+     instead of properly hiding it */
+  transform:translateZ(0);-webkit-transform:translateZ(0);
+  border-radius:10px;
+  box-shadow:0 10px 24px rgba(0,0,0,0.65),0 2px 6px rgba(0,0,0,0.5);
+  overflow:hidden;
+}
+.face.front{
+  background:linear-gradient(170deg,#26282e,var(--card-face) 40%,#17181c);
+  border:1px solid rgba(201,162,75,0.45);
+  display:flex;flex-direction:column;
+}
+.face.back{
+  transform:rotateY(180deg) translateZ(0);
+}
+.cardback,.deckcard,.potcards div{
+  background:#101114 url('pic-card.png') center/cover no-repeat;
+  border:1px solid rgba(201,162,75,0.5);
+  box-shadow:0 8px 20px rgba(0,0,0,0.6);
+}
+.face.back{display:flex;align-items:center;justify-content:center;}
+
+/* card front layout — square framed artwork (280x280 source images) */
+.art{
+  aspect-ratio:1/1;
+  flex-shrink:0;
+  margin:calc(var(--cardW) * 0.045) calc(var(--cardW) * 0.045) 0;
+  position:relative;
+  display:flex;align-items:center;justify-content:center;
+  font-family:"Cinzel",Georgia,serif;font-weight:700;
+  font-size:calc(var(--cardW) * 0.24);
+  color:rgba(255,255,255,0.9);
+  text-shadow:0 2px 8px rgba(0,0,0,0.6);
+  border:1px solid rgba(201,162,75,0.65);
+  border-radius:7px;
+  box-shadow:0 3px 10px rgba(0,0,0,0.55);
+  background-clip:padding-box !important;
+  overflow:hidden; /* the frame is a masked viewport — nothing escapes it */
+}
+/* portrait: a real image, cropped by the frame, never spilling past it */
+.artimg{
+  position:absolute;inset:0;
+  width:100%;height:100%;
+  object-fit:cover;object-position:center center;
+  display:block;
+  pointer-events:none;user-select:none;-webkit-user-drag:none;
+}
+.art::after{
+  content:"";position:absolute;inset:3px;
+  border:1px solid rgba(201,162,75,0.35);
+  border-radius:4px;pointer-events:none;
+}
+/* phones: cards go nearly edge to edge so the pictures get as big
+   as the screen allows, with clear air between frame and border */
+@media (max-width:600px){
+  /* card width is derived from the space INSIDE the table rim,
+     so cards can never slide under the wooden border */
+  :root{
+    --cardW:min(250px, calc(50vw - 14px), 31vh);
+    --cardH:calc(var(--cardW) * 1.9); /* taller: fatter stat rows = easier tapping */
+  }
+  #table{border-width:6px;}
+  #slots{gap:6px;}
+  .art{margin:calc(var(--cardW) * 0.05) calc(var(--cardW) * 0.05) 0;}
+  .stats .stat{padding:5px 6px;}
+  #battle{padding-top:clamp(100px,22vh,150px);padding-bottom:12px;}
+  #banner{letter-spacing:1.5px;}
+}
+/* name banner: floats across the bottom of the portrait so its (variable)
+   height never pushes the attributes below — they stay fixed while flicking */
+.cname{
+  position:absolute;left:0;right:0;bottom:0;z-index:2;
+  padding:4px 6px 5px;
+  font-family:"Cinzel",Georgia,serif;
+  font-size:calc(var(--cardW) * 0.064);
+  font-weight:700;letter-spacing:0.5px;text-transform:uppercase;
+  color:var(--gold-bright);
+  text-align:center;line-height:1.12;
+  text-shadow:0 1px 3px #000,0 0 6px rgba(0,0,0,0.8);
+  background:linear-gradient(to top, rgba(9,9,11,0.94), rgba(9,9,11,0.78) 55%, rgba(9,9,11,0) 100%);
+  pointer-events:none;
+}
+.cname.long{ font-size:calc(var(--cardW) * 0.052); letter-spacing:0.3px; }
+.stats{flex:1;display:flex;flex-direction:column;justify-content:space-evenly;padding:1px 7px 5px;}
+.stat{
+  display:flex;align-items:center;gap:6px;
+  padding:1px 5px;border-radius:5px;
+  transition:background 0.25s, box-shadow 0.25s;
+}
+.stat .badge{
+  width:calc(var(--cardW) * 0.085);
+  height:calc(var(--cardW) * 0.085);
+  min-width:12px;min-height:12px;
+  border-radius:50%;border:1px solid var(--gold-dim);
+  color:var(--gold);
+  font-size:calc(var(--cardW) * 0.05);font-weight:700;
+  display:flex;align-items:center;justify-content:center;
+  font-family:"Cinzel",Georgia,serif;flex-shrink:0;
+}
+.stat .lbl{
+  flex:1;font-size:calc(var(--cardW) * 0.052);
+  letter-spacing:1.2px;color:var(--ink-dim);font-weight:600;
+  white-space:nowrap;
+}
+/* star rating: gold stars clipped over a dim 5-star track — halves render exactly */
+.starbox{display:inline-block;position:relative;line-height:1;font-size:calc(var(--cardW) * 0.066);letter-spacing:0;margin-left:auto;}
+.starbox .srow{display:block;white-space:nowrap;}
+.starbox .dim{color:rgba(255,255,255,0.16);}
+.starbox .lit{position:absolute;top:0;left:0;overflow:hidden;color:var(--gold);}
+.card.pickable .stat{cursor:pointer;}
+.card.pickable .stat:hover{background:rgba(201,162,75,0.12);}
+.stat.chosen{
+  background:linear-gradient(90deg,rgba(201,162,75,0.22),rgba(201,162,75,0.08));
+  box-shadow:inset 0 0 0 1px rgba(201,162,75,0.55);
+}
+.stat.chosen .lbl{color:var(--gold-bright);}
+.stat.chosen .lit{color:var(--gold-bright);text-shadow:0 0 7px rgba(232,205,133,0.55);}
+.stat.winstat{
+  background:linear-gradient(90deg,rgba(201,162,75,0.35),rgba(201,162,75,0.1));
+  box-shadow:inset 0 0 0 1px var(--gold),0 0 14px rgba(201,162,75,0.35);
+}
+.stat.winstat .lit{color:#fff;}
+.card.roundwin .face.front{
+  border-color:var(--gold);
+  box-shadow:0 10px 24px rgba(0,0,0,0.65),0 0 26px rgba(201,162,75,0.4);
+}
+.card.roundlose{filter:brightness(0.55) saturate(0.7);transition:filter 0.4s;}
+
+/* ============ OVERLAYS ============ */
+.overlay{
+  position:fixed;inset:0;z-index:20;
+  background:rgba(6,6,8,0.88);
+  display:flex;flex-direction:column;align-items:center;justify-content:safe center;
+  gap:14px;text-align:center;padding:24px;
+  overflow-y:auto;                 /* tall panels stay reachable — scroll to any button */
+  backdrop-filter:blur(3px);
+}
+.overlay.hidden{display:none;}
+/* main menu: a slow crossfading background slideshow behind the buttons */
+#startOverlay{background:rgba(6,6,8,0.55);}
+#startBG{position:absolute;inset:0;z-index:-1;overflow:hidden;}
+.bgslide{
+  position:absolute;inset:0;
+  background-size:cover;background-position:center;
+  opacity:0;
+  transition:opacity 1.4s ease;
+}
+.bgslide.show{opacity:1;}
+.overlay h1{
+  font-family:"Cinzel",Georgia,serif;font-size:clamp(40px,9vh,68px);
+  letter-spacing:10px;color:var(--gold-bright);font-weight:700;
+  text-shadow:0 3px 20px rgba(201,162,75,0.25);
+}
+#startLogo{
+  width:clamp(220px, 62vw, 340px);
+  height:auto;
+  aspect-ratio:300/143;              /* cctt-tbcmenu.png's native ratio */
+  margin-bottom:16px;
+  border:3px solid var(--gold-dim);
+  border-radius:10px;
+  box-shadow:0 10px 24px rgba(0,0,0,0.65),0 2px 6px rgba(0,0,0,0.5);
+}
+.overlay .sub{font-size:12px;letter-spacing:4px;color:var(--ink-dim);margin-bottom:16px;}
+/* intro buttons: one uniform size, stacked in line with the title */
+#startOverlay .btn{
+  width:min(300px,84vw);
+  padding:14px 0;
+  text-align:center;
+}
+.overlay h2{
+  font-family:"Cinzel",Georgia,serif;font-size:clamp(26px,5.5vh,42px);
+  letter-spacing:5px;color:var(--gold-bright);
+}
+.overlay .detail{font-size:14px;color:var(--ink-dim);letter-spacing:1px;}
+.btn{
+  font-family:inherit;font-size:14px;font-weight:600;letter-spacing:3px;
+  padding:14px 40px;border-radius:4px;cursor:pointer;
+  background:linear-gradient(170deg,#2a2317,#1c1810);
+  border:1px solid var(--gold-dim);color:var(--gold-bright);
+  transition:border-color 0.2s, box-shadow 0.2s;
+}
+.btn:hover{border-color:var(--gold);box-shadow:0 0 18px rgba(201,162,75,0.25);}
+.btn-red{border-color:rgba(168,50,50,0.7);color:#d96b6b;background:linear-gradient(170deg,#2a1717,#1c1010);}
+.btn-red:hover{border-color:var(--red);box-shadow:0 0 18px rgba(168,50,50,0.3);}
+.btn.disabled{opacity:0.35;cursor:default;pointer-events:none;}
+.note{font-size:11px;color:var(--ink-dim);letter-spacing:1px;max-width:340px;line-height:1.6;}
+
+/* ============ OPTIONS ============ */
+#btnOptions{
+  position:absolute;top:calc(12px + env(safe-area-inset-top));left:50%;
+  transform:translateX(-50%);
+  z-index:6;
+  font-family:inherit;font-size:10px;font-weight:600;letter-spacing:2.5px;
+  padding:7px 16px;border-radius:14px;cursor:pointer;
+  background:rgba(13,13,16,0.85);
+  border:1px solid rgba(201,162,75,0.4);color:var(--ink-dim);
+  transition:border-color 0.2s, color 0.2s;
+}
+#btnOptions:hover{border-color:var(--gold);color:var(--gold-bright);}
+
+#optBox,.panelbox{
+  background:linear-gradient(170deg,#16171b,#0f1013);
+  border:1px solid var(--gold-dim);border-radius:10px;
+  padding:22px 22px 18px;max-width:360px;width:100%;
+  flex-shrink:0;                   /* don't let the flex overlay squash it */
+  margin:auto;                     /* centre when it fits, scroll when it doesn't */
+  display:flex;flex-direction:column;gap:9px;
+  box-shadow:0 14px 40px rgba(0,0,0,0.7);
+}
+#optBox h3,.panelbox h3{
+  font-family:"Cinzel",Georgia,serif;font-size:20px;letter-spacing:5px;
+  color:var(--gold-bright);text-align:center;font-weight:700;
+}
+.optlabel{
+  font-size:10px;letter-spacing:2.5px;color:var(--ink-dim);
+  font-weight:600;text-align:center;margin-top:4px;
+}
+.opt{
+  border:1px solid rgba(201,162,75,0.25);border-radius:8px;
+  padding:12px 14px;cursor:pointer;text-align:left;
+  transition:border-color 0.2s, background 0.2s;
+}
+.opt:hover{border-color:rgba(201,162,75,0.55);}
+.opt.sel{
+  border-color:var(--gold);
+  background:linear-gradient(90deg,rgba(201,162,75,0.14),rgba(201,162,75,0.04));
+  box-shadow:0 0 14px rgba(201,162,75,0.15);
+}
+.opt.disabled{opacity:0.35;cursor:default;pointer-events:none;}
+.opt .optname{
+  font-size:13px;font-weight:700;letter-spacing:2px;color:var(--ink);
+  display:flex;align-items:center;gap:8px;
+}
+.opt.sel .optname{color:var(--gold-bright);}
+.opt .optname::before{
+  content:"";width:9px;height:9px;border-radius:50%;
+  border:1px solid var(--gold-dim);flex-shrink:0;
+}
+.opt.sel .optname::before{
+  background:var(--gold);box-shadow:0 0 6px rgba(201,162,75,0.6);
+  border-color:var(--gold);
+}
+.opt .optdesc{font-size:11px;color:var(--ink-dim);line-height:1.5;margin-top:4px;letter-spacing:0.3px;}
+.optnote{font-size:10px;color:var(--ink-dim);line-height:1.45;letter-spacing:0.5px;text-align:center;}
+
+/* compact two-up option rows so the panel fits a phone without scrolling */
+.optrow{display:flex;gap:8px;}
+.optrow .opt{flex:1;padding:10px 6px;text-align:center;display:flex;align-items:center;justify-content:center;}
+.optrow .optname{justify-content:center;font-size:11px;letter-spacing:1px;line-height:1.2;}
+.optlabel{margin-top:2px;}
+#optBox .btn{padding:12px 0;}
+
+/* ============ GALLERY ============ */
+/* both --cardW AND --cardH must be set here: --cardH is computed up at :root
+   from the game's card width, so it won't follow a --cardW override alone */
+#galleryOverlay{ --cardW:min(280px, 74vw, 40vh); --cardH:calc(var(--cardW) * 1.62); gap:16px; }
+.galtitle{
+  font-family:"Cinzel",Georgia,serif;font-size:22px;letter-spacing:6px;
+  color:var(--gold-bright);font-weight:700;
+}
+#galleryCard{
+  width:var(--cardW);height:var(--cardH);
+  position:relative;perspective:1100px;flex-shrink:0;
+  touch-action:pan-y;
+}
+#galleryNav{display:flex;align-items:center;justify-content:center;gap:22px;}
+#galleryNav .garrow{
+  width:44px;height:44px;border-radius:50%;
+  border:1px solid var(--gold-dim);color:var(--gold-bright);
+  background:rgba(13,13,16,0.85);
+  display:flex;align-items:center;justify-content:center;
+  font-size:22px;cursor:pointer;user-select:none;
+  transition:border-color 0.2s, box-shadow 0.2s;
+}
+#galleryNav .garrow:hover{border-color:var(--gold);box-shadow:0 0 12px rgba(201,162,75,0.25);}
+#galleryNav .garrow:active{transform:scale(0.92);}
+#galleryPos{
+  font-family:"Cinzel",Georgia,serif;font-size:16px;letter-spacing:2px;
+  color:var(--gold-bright);min-width:84px;text-align:center;font-variant-numeric:tabular-nums;
+}
+#galColl{
+  font-size:11px;letter-spacing:2px;color:var(--ink-dim);text-align:center;min-height:14px;
+}
+/* album: cards you don't own yet sit greyed out in the gallery */
+#galleryCard.uncollected .art{filter:grayscale(1) brightness(0.55);}
+#galleryCard.uncollected .face.front{border-color:rgba(201,162,75,0.2);}
+.galcount{
+  position:absolute;top:-10px;right:-10px;z-index:5;
+  min-width:30px;height:30px;padding:0 8px;border-radius:15px;
+  background:var(--gold);color:#1a1206;font-weight:700;font-size:14px;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 2px 8px rgba(0,0,0,0.6);
+}
+.galuncoll{
+  position:absolute;left:0;right:0;bottom:-24px;
+  font-size:10px;letter-spacing:2.5px;color:var(--ink-dim);text-align:center;
+}
+/* phones fatten the stat rows (easier tapping), so the 1.62-ratio gallery
+   card runs out of height and clips the last row (CLOUT) — use the same
+   taller 1.9 ratio the in-game card uses. Must come AFTER the base
+   #galleryOverlay rule to win the cascade. */
+@media (max-width:600px){
+  #galleryOverlay{ --cardW:min(280px, 74vw, 34vh); --cardH:calc(var(--cardW) * 1.9); }
+}
+
+/* ============ ACCOUNT ============ */
+.txtin{
+  background:#0c0d10;border:1px solid var(--gold-dim);border-radius:6px;
+  color:var(--ink);font-size:15px;letter-spacing:1px;
+  text-align:center;padding:11px 12px;font-family:inherit;
+  outline:none;width:100%;
+}
+.txtin:focus{border-color:var(--gold);}
+#recCodeBox{
+  font-family:"Cinzel",Georgia,serif;font-size:clamp(17px,4.6vw,22px);letter-spacing:2px;
+  color:var(--gold-bright);text-align:center;padding:12px 4px;
+  border:1px dashed var(--gold-dim);border-radius:8px;
+  text-shadow:0 0 14px rgba(201,162,75,0.3);
+  user-select:text;-webkit-user-select:text;
+}
+.acclink{
+  font-size:11px;letter-spacing:1.5px;color:var(--ink-dim);cursor:pointer;
+  text-decoration:underline;text-underline-offset:3px;
+}
+.acclink:hover{color:var(--gold-bright);}
+
+/* ============ TRADING ============ */
+.trsec{display:flex;flex-direction:column;gap:8px;width:100%;}
+.trempty{font-size:10px;letter-spacing:2px;color:var(--ink-dim);text-align:center;padding:4px 0;}
+.trrow{
+  display:flex;align-items:center;gap:9px;
+  border:1px solid rgba(201,162,75,0.25);border-radius:8px;padding:8px 10px;
+}
+.trarrow{color:var(--gold);font-size:15px;flex-shrink:0;}
+.trwho{flex:1;font-size:10.5px;letter-spacing:0.8px;color:var(--ink-dim);text-align:left;line-height:1.45;}
+.trwho b{color:var(--gold-bright);font-weight:600;}
+.trbtns{display:flex;flex-direction:column;gap:5px;flex-shrink:0;}
+.trbtns .btn{padding:7px 12px;font-size:10px;letter-spacing:1.5px;}
+.trpick{
+  display:flex;gap:8px;overflow-x:auto;max-width:100%;
+  padding:8px 2px;-webkit-overflow-scrolling:touch;
+}
+/* small standalone card tiles (the .pile .mini styles are pile-scoped) */
+.trmini{
+  width:64px;flex-shrink:0;border-radius:6px;position:relative;
+  border:1px solid rgba(201,162,75,0.35);overflow:hidden;background:var(--card-face);
+}
+.trpick .trmini{cursor:pointer;transition:border-color 0.15s, box-shadow 0.15s;}
+.trmini.sel{border-color:var(--gold);box-shadow:0 0 12px rgba(201,162,75,0.5);}
+.trmini .mart{
+  aspect-ratio:1/1;margin:2px 2px 0;border-radius:3px;
+  border:1px solid rgba(201,162,75,0.4);
+  position:relative;overflow:hidden;
+  display:flex;align-items:center;justify-content:center;
+  font-family:"Cinzel",Georgia,serif;font-weight:700;color:rgba(255,255,255,0.85);font-size:18px;
+}
+.trmini .mname{
+  padding:1px 3px 2px;font-size:6.5px;letter-spacing:0.2px;
+  color:var(--ink);overflow:hidden;line-height:1.2;font-weight:600;
+  white-space:nowrap;text-overflow:ellipsis;
+}
+.trmini .dupen{
+  position:absolute;top:2px;right:2px;z-index:2;
+  background:var(--gold);color:#1a1206;font-size:9px;font-weight:700;
+  border-radius:8px;padding:0 5px;line-height:14px;
+}
+.trrow .trmini{width:46px;}
+.trrow .trmini .mart{font-size:13px;}
+.trrow .trmini .mname{display:none;}
+
+/* ============ END-SCREEN CARD REWARD ============ */
+#endReward{display:flex;flex-direction:column;align-items:center;gap:10px;}
+#endReward.hidden{display:none;}
+.rewardlbl{
+  font-family:"Cinzel",Georgia,serif;font-size:13px;letter-spacing:3px;
+  color:var(--gold-bright);
+}
+#rewardCard{
+  --cardW:min(170px, 44vw, 26vh); --cardH:calc(var(--cardW) * 1.76);
+  width:var(--cardW);height:var(--cardH);
+  position:relative;flex-shrink:0;
+}
+
+/* ============ BATTLE MODE ============ */
+#battleStage{
+  position:absolute;inset:0;display:none;
+  flex-direction:column;align-items:center;justify-content:center;
+  gap:clamp(8px,2vh,16px);z-index:3;
+  padding:clamp(58px,11vh,88px) 6px 12px;
+}
+#table.battle #battle{display:none;}
+#table.battle #deck,#table.battle #oppPile,#table.battle #playerPile{display:none;}
+#table.battle #battleStage{display:flex;}
+
+#battlePips{display:flex;align-items:center;gap:12px;}
+.pipside{display:flex;gap:6px;}
+.pipmid{font-family:"Cinzel",Georgia,serif;font-size:11px;letter-spacing:3px;color:var(--ink-dim);}
+.pip{width:12px;height:12px;border-radius:50%;border:1px solid var(--gold-dim);}
+.pip.on{background:var(--gold);box-shadow:0 0 8px rgba(201,162,75,0.6);border-color:var(--gold);}
+
+#battlePick{display:flex;flex-direction:column;align-items:center;gap:12px;width:100%;}
+#battlePickBanner{
+  font-family:"Cinzel",Georgia,serif;font-size:clamp(13px,2.2vh,17px);
+  letter-spacing:2px;color:var(--gold-bright);text-align:center;
+}
+#battleHand{
+  --cardW:min(150px, 42vw); --cardH:calc(var(--cardW) * 1.62);
+  display:flex;gap:12px;overflow-x:auto;max-width:100%;
+  padding:16px 14px;-webkit-overflow-scrolling:touch;
+}
+/* mobile: the 1.62 ratio above is too short to fit all 5 stat rows (CLOUT,
+   the last one, gets clipped) — this must come AFTER the rule above so it
+   wins the cascade at equal specificity */
+@media (max-width:600px){
+  #battleHand{--cardH:calc(var(--cardW) * 2.2);}
+}
+.bslot{
+  width:var(--cardW);height:var(--cardH);
+  position:relative;perspective:1100px;flex-shrink:0;cursor:pointer;
+  transition:transform 0.18s;
+}
+.bslot.sel{transform:translateY(-12px);}
+.bslot.sel::after{
+  content:"";position:absolute;inset:-4px;border-radius:12px;
+  border:2px solid var(--gold);box-shadow:0 0 16px rgba(201,162,75,0.5);pointer-events:none;
+}
+.bslot .selnum{
+  position:absolute;top:-9px;right:-9px;z-index:5;
+  width:24px;height:24px;border-radius:50%;
+  background:var(--gold);color:#1a1206;font-weight:700;font-size:13px;
+  display:none;align-items:center;justify-content:center;
+}
+.bslot.sel .selnum{display:flex;}
+
+#battleResolve{display:flex;flex-direction:column;align-items:center;gap:clamp(4px,1vh,10px);width:100%;}
+.brtrio{display:flex;gap:6px;justify-content:center;}
+/* the two trios charge inward and clash together before the sums are shown */
+.brtrio.clash-opp{animation:clashDown 0.62s cubic-bezier(.32,.08,.24,1);}
+.brtrio.clash-you{animation:clashUp 0.62s cubic-bezier(.32,.08,.24,1);}
+@keyframes clashDown{
+  0%{transform:translateY(0) rotate(0);}
+  48%{transform:translateY(22px) rotate(0.6deg);}
+  56%{transform:translateY(16px) translateX(-4px) rotate(-0.8deg);}
+  64%{transform:translateY(18px) translateX(4px) rotate(0.8deg);}
+  74%{transform:translateY(13px) translateX(-2px) rotate(-0.4deg);}
+  100%{transform:translateY(0) rotate(0);}
+}
+@keyframes clashUp{
+  0%{transform:translateY(0) rotate(0);}
+  48%{transform:translateY(-22px) rotate(-0.6deg);}
+  56%{transform:translateY(-16px) translateX(4px) rotate(0.8deg);}
+  64%{transform:translateY(-18px) translateX(-4px) rotate(-0.8deg);}
+  74%{transform:translateY(-13px) translateX(2px) rotate(0.4deg);}
+  100%{transform:translateY(0) rotate(0);}
+}
+#battleResolve.shake{animation:brShake 0.22s;}
+@keyframes brShake{
+  0%,100%{transform:translateX(0);}
+  25%{transform:translateX(-3px);}
+  50%{transform:translateX(3px);}
+  75%{transform:translateX(-2px);}
+}
+.bcardR{
+  width:min(96px,27vw);
+  display:flex;flex-direction:column;
+  border:1px solid rgba(201,162,75,0.4);border-radius:7px;overflow:hidden;
+  background:#14161a;transition:border-color 0.3s, box-shadow 0.3s;
+}
+.bcardR.win{border-color:var(--gold);box-shadow:0 0 14px rgba(201,162,75,0.45);}
+.bcArt{position:relative;aspect-ratio:1/1;}
+.bcArt .artimg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;}
+.bcName{
+  position:absolute;left:0;right:0;bottom:0;padding:2px 3px;
+  font-family:"Cinzel",Georgia,serif;font-size:8px;letter-spacing:0.2px;
+  text-transform:uppercase;color:var(--gold-bright);text-align:center;line-height:1.1;
+  background:linear-gradient(to top,rgba(9,9,11,0.95),rgba(9,9,11,0));text-shadow:0 1px 2px #000;
+}
+.bcStat{padding:5px 2px 6px;text-align:center;}
+.brsumrow{font-family:"Cinzel",Georgia,serif;font-size:12px;letter-spacing:2px;color:var(--ink-dim);}
+.brsum{font-size:22px;color:var(--gold-bright);font-weight:700;font-variant-numeric:tabular-nums;}
+#brMid{
+  position:relative;
+  font-family:"Cinzel",Georgia,serif;letter-spacing:2px;text-align:center;
+  color:var(--gold-bright);min-height:44px;
+  display:flex;flex-direction:column;justify-content:center;gap:3px;
+}
+#brMid .attr{font-size:clamp(15px,2.6vh,20px);}
+#brMid .res{font-size:12px;letter-spacing:2px;}
+#brMid .res.red{color:#d96b6b;}
+/* the impact spark at the moment the two trios collide */
+#brMid::before{
+  content:"";position:absolute;left:50%;top:50%;
+  width:10px;height:10px;border-radius:50%;
+  background:radial-gradient(circle,rgba(232,205,133,0.9),rgba(201,162,75,0) 70%);
+  transform:translate(-50%,-50%) scale(0);opacity:0;
+  pointer-events:none;
+}
+#brMid.impact::before{animation:impactFlash 0.5s ease-out;}
+@keyframes impactFlash{
+  0%{transform:translate(-50%,-50%) scale(0.3);opacity:0.9;}
+  100%{transform:translate(-50%,-50%) scale(14);opacity:0;}
+}
+
+/* ============ BATTLE INTRO PARADE ============ */
+/* on pressing BATTLE!, the six picked cards fly across full-screen one at a
+   time (yours, then a VS divider, then theirs) before settling into battle */
+#battleIntro{
+  position:fixed;inset:0;z-index:20;
+  display:none;
+  background:rgba(9,9,11,0.92);
+  --cardW:min(320px, 80vw, 56vh); --cardH:calc(var(--cardW) * 1.76);
+}
+#battleIntro.show{display:block;}
+#biCard{
+  width:var(--cardW);height:var(--cardH);
+  position:absolute;top:50%;left:50%;
+  opacity:0;transform:translate(-50%,-50%) translateX(65vw) scale(0.92);
+  transition:transform 0.4s cubic-bezier(.22,.1,.2,1), opacity 0.3s;
+}
+#biCard.enter{opacity:1;transform:translate(-50%,-50%) translateX(0) scale(1);}
+#biCard.exit{opacity:0;transform:translate(-50%,-50%) translateX(-65vw) scale(0.92);}
+#biVS{
+  position:absolute;top:50%;left:50%;
+  font-family:"Cinzel",Georgia,serif;
+  font-size:clamp(44px,13vw,88px);letter-spacing:8px;
+  color:var(--gold-bright);
+  text-shadow:0 0 26px rgba(201,162,75,0.55),0 4px 10px #000;
+  opacity:0;transform:translate(-50%,-50%) scale(0.8);
+  transition:opacity 0.3s, transform 0.3s;
+}
+#biVS.show{opacity:1;transform:translate(-50%,-50%) scale(1);}
+
+/* ============ ONLINE MATCH ============ */
+.netview{display:flex;flex-direction:column;gap:10px;}
+#roomCode{
+  font-family:"Cinzel",Georgia,serif;font-size:44px;letter-spacing:14px;text-indent:14px;
+  color:var(--gold-bright);text-align:center;padding:6px 0 2px;
+  text-shadow:0 0 20px rgba(201,162,75,0.3);
+}
+.netstatus{font-size:11px;letter-spacing:2px;color:var(--ink-dim);text-align:center;min-height:16px;}
+.netstatus.bad{color:#d96b6b;}
+#joinCode{
+  background:#0c0d10;border:1px solid var(--gold-dim);border-radius:6px;
+  color:var(--gold-bright);font-size:26px;letter-spacing:10px;text-indent:10px;
+  text-align:center;padding:10px;font-family:"Cinzel",Georgia,serif;
+  text-transform:uppercase;outline:none;width:100%;
+}
+#joinCode:focus{border-color:var(--gold);}
+
+/* flying clone used for deal / capture animations */
+.flyer{
+  position:fixed;z-index:15;pointer-events:none;
+  transition:transform 0.55s cubic-bezier(0.35,0.1,0.25,1), opacity 0.55s;
+  transform-origin:top left;
+}
+</style>
+</head>
+<body>
+
+<div id="table">
+  <div class="score" id="oppScore"><div class="num" id="oppScoreN">0</div><div class="who">OPPONENT</div></div>
+  <div class="score" id="playerScore"><div class="num" id="playerScoreN">0</div><div class="who">YOU</div></div>
+
+  <div class="pile" id="oppPile"></div>
+  <div class="pile" id="playerPile"></div>
+
+  <button id="btnOptions">OPTIONS</button>
+
+  <div id="battle">
+    <div id="banner"></div>
+    <div id="slots">
+      <div class="slot" id="oppSlot"></div>
+      <div class="slot" id="playerSlot"></div>
+    </div>
+
+    <div id="lower">
+      <div id="pot">
+        <div class="potcards"><div></div><div style="transform:translate(2px,2px)"></div></div>
+        <div class="lbl">TIE POT</div>
+        <div class="n" id="potN">0</div>
+      </div>
+
+      <div id="deck">
+        <div class="deckcard"></div>
+        <div class="deckcard"></div>
+        <div class="deckcard"></div>
+        <div id="deckCount">0</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="battleStage">
+    <div id="battlePips">
+      <span class="pipside" id="battlePipsYou"></span>
+      <span class="pipmid">BEST OF 5</span>
+      <span class="pipside" id="battlePipsOpp"></span>
+    </div>
+
+    <div id="battlePick">
+      <div id="battlePickBanner">PICK 3 FOR BATTLE</div>
+      <div id="battleHand"></div>
+      <button class="btn" id="btnBattleGo">BATTLE!</button>
+    </div>
+
+    <div id="battleResolve" style="display:none">
+      <div class="brtrio" id="brOpp"></div>
+      <div class="brsumrow">OPPONENT &nbsp; <span class="brsum" id="brOppSum">0</span></div>
+      <div id="brMid"></div>
+      <div class="brsumrow"><span class="brsum" id="brYouSum">0</span> &nbsp; YOU</div>
+      <div class="brtrio" id="brYou"></div>
+    </div>
+  </div>
+
+  <div id="battleIntro">
+    <div id="biCard"></div>
+    <div id="biVS">VS</div>
+  </div>
+</div>
+
+<div class="overlay" id="startOverlay">
+  <div id="startBG">
+    <div class="bgslide" style="background-image:url('cctt-BG1.png')"></div>
+    <div class="bgslide" style="background-image:url('cctt-BG2.png')"></div>
+    <div class="bgslide" style="background-image:url('cctt-BG3.png')"></div>
+    <div class="bgslide" style="background-image:url('cctt-BG4.png')"></div>
+  </div>
+  <img id="startLogo" src="cctt-tbcmenu.png" alt="">
+  <button class="btn" id="btnPvP">PVP</button>
+  <button class="btn" id="btnCPU">CPU</button>
+  <button class="btn" id="btnGallery">CARD GALLERY</button>
+  <button class="btn" id="btnTrading">TRADING</button>
+  <button class="btn" id="btnOptionsStart">OPTIONS</button>
+  <button class="btn" id="btnAbout">ABOUT</button>
+  <button class="btn" id="btnAccount">ACCOUNT</button>
+</div>
+
+<div class="overlay hidden" id="tradeOverlay">
+  <div class="panelbox">
+    <h3>TRADING</h3>
+
+    <div class="netview" id="trHome">
+      <div class="netstatus" id="trStatus"></div>
+      <div class="optlabel">OFFERS FOR YOU</div>
+      <div class="trsec" id="trIncoming"></div>
+      <div class="optlabel">YOUR OPEN OFFERS</div>
+      <div class="trsec" id="trOutgoing"></div>
+      <button class="btn" id="btnTrPropose">PROPOSE A TRADE</button>
+    </div>
+
+    <div class="netview" id="trNew" style="display:none">
+      <input class="txtin" id="trTo" placeholder="FRIEND'S USERNAME" maxlength="20" autocomplete="off" spellcheck="false">
+      <div class="optlabel">YOU GIVE &mdash; YOUR DUPLICATES ONLY</div>
+      <div class="trpick" id="trOffer"></div>
+      <div class="optlabel">YOU WANT BACK</div>
+      <div class="trpick" id="trWant"></div>
+      <button class="btn" id="btnTrSend">SEND OFFER</button>
+      <div class="netstatus" id="trNewStatus"></div>
+    </div>
+
+    <button class="btn" id="btnTrBack" style="margin-top:6px">BACK</button>
+  </div>
+</div>
+
+<div class="overlay hidden" id="accountOverlay">
+  <div class="panelbox">
+    <h3>ACCOUNT</h3>
+
+    <div class="netview" id="accHome">
+      <div class="optnote" id="accWho">Not logged in. An account keeps your card album safe and lets you trade with friends.</div>
+      <button class="btn" id="btnAccLoginView">LOG IN</button>
+      <button class="btn" id="btnAccSignupView">SIGN UP</button>
+      <button class="btn btn-red" id="btnAccLogout" style="display:none">LOG OUT</button>
+    </div>
+
+    <div class="netview" id="accLogin" style="display:none">
+      <input class="txtin" id="liName" placeholder="USERNAME" maxlength="20" autocomplete="username">
+      <input class="txtin" id="liPass" placeholder="PASSWORD" type="password" maxlength="100" autocomplete="current-password">
+      <button class="btn" id="btnAccLoginGo">LOG IN</button>
+      <div class="netstatus" id="liStatus"></div>
+      <div class="acclink" id="lnkRecover">FORGOT PASSWORD?</div>
+    </div>
+
+    <div class="netview" id="accSignup" style="display:none">
+      <input class="txtin" id="suName" placeholder="USERNAME" maxlength="20" autocomplete="username">
+      <input class="txtin" id="suPass" placeholder="PASSWORD" type="password" maxlength="100" autocomplete="new-password">
+      <div class="optnote">No email needed. You'll get a one-time recovery code instead &mdash; keep it safe.</div>
+      <button class="btn" id="btnAccSignupGo">SIGN UP</button>
+      <div class="netstatus" id="suStatus"></div>
+    </div>
+
+    <div class="netview" id="accCode" style="display:none">
+      <div class="optlabel">YOUR RECOVERY CODE</div>
+      <div id="recCodeBox">&mdash;</div>
+      <div class="optnote">Write this down or screenshot it now. It's the ONLY way back into your account if you forget your password &mdash; it will never be shown again.</div>
+      <button class="btn" id="btnAccCodeDone">I'VE SAVED IT</button>
+    </div>
+
+    <div class="netview" id="accRecover" style="display:none">
+      <input class="txtin" id="rcName" placeholder="USERNAME" maxlength="20" autocomplete="username">
+      <input class="txtin" id="rcCode" placeholder="RECOVERY CODE" maxlength="24" autocomplete="off" spellcheck="false">
+      <input class="txtin" id="rcPass" placeholder="NEW PASSWORD" type="password" maxlength="100" autocomplete="new-password">
+      <button class="btn" id="btnAccRecoverGo">RESET PASSWORD</button>
+      <div class="netstatus" id="rcStatus"></div>
+    </div>
+
+    <button class="btn" id="btnAccBack" style="margin-top:6px">BACK</button>
+  </div>
+</div>
+
+<div class="overlay hidden" id="aboutOverlay">
+  <div class="panelbox">
+    <h3>THE FINE PRINT</h3>
+    <div class="optnote">TBC is a work of parody. Every card is an illustrated caricature — not a photograph — of a fictionalised persona loosely inspired by tabloid folklore. Some of these personas are reformed. Some are still adored by millions of fans around the world. Some are currently serving time for crimes they were convicted of. Some were just having a bad day. At least one was never even charged with, let alone convicted of, anything at all. The game doesn't take a position on any of it — nicknames, stats, and stories are exaggerated for comic effect and shouldn't be read as factual claims about any real person, living or dead. If it made you laugh, it worked. If it made you Google someone, that's on you.</div>
+    <button class="btn" id="btnAboutClose">CLOSE</button>
+  </div>
+</div>
+
+<div class="overlay hidden" id="modeSelectOverlay">
+  <div id="modeSelectBox" class="panelbox">
+    <h3 id="modeSelectTitle">CHOOSE GAME TYPE</h3>
+    <div class="opt" data-type="table" data-desc="Shared deck &mdash; most cards when it empties wins.">
+      <div class="optname">THE TABLE</div>
+      <div class="optdesc"></div>
+    </div>
+    <div class="opt" data-type="trumps" data-desc="Split hands &mdash; win by taking every card.">
+      <div class="optname">TOP TRUMPS</div>
+      <div class="optdesc"></div>
+    </div>
+    <div class="opt" data-type="battle" data-desc="Commit 3 cards, random attribute, best of 5.">
+      <div class="optname">BATTLE</div>
+      <div class="optdesc"></div>
+    </div>
+    <button class="btn" id="btnModeSelectBack" style="margin-top:6px">BACK</button>
+  </div>
+</div>
+
+<div class="overlay hidden" id="optionsOverlay">
+  <div id="optBox">
+    <h3>OPTIONS</h3>
+    <div class="optlabel" id="modeLabel">WHO PICKS THE ATTRIBUTE</div>
+    <div class="optrow" id="modeRow">
+      <div class="opt" data-mode="winner"><div class="optname">WINNER STAYS ON</div></div>
+      <div class="opt" data-mode="turns"><div class="optname">TAKE TURNS</div></div>
+    </div>
+    <div class="optlabel">SOUND</div>
+    <div class="optrow">
+      <div class="opt" id="optMusic"><div class="optname">MUSIC</div></div>
+      <div class="opt" id="optFx"><div class="optname">SOUND EFFECTS</div></div>
+    </div>
+    <button class="btn btn-red" id="btnExitGame" style="display:none;margin-top:6px">EXIT TO MENU</button>
+    <button class="btn" id="btnOptDone" style="margin-top:6px">DONE</button>
+  </div>
+</div>
+
+<div class="overlay hidden" id="confirmOverlay">
+  <div class="panelbox">
+    <h3>ARE YOU SURE?</h3>
+    <div class="optnote">The match will be abandoned and you'll return to the menu.</div>
+    <button class="btn btn-red" id="btnConfirmExit">YES &mdash; EXIT GAME</button>
+    <button class="btn" id="btnCancelExit">CANCEL</button>
+  </div>
+</div>
+
+<div class="overlay hidden" id="onlineOverlay">
+  <div class="panelbox">
+    <h3>ONLINE MATCH</h3>
+    <div class="netview" id="netHome">
+      <button class="btn" id="btnCreate">CREATE MATCH</button>
+      <button class="btn" id="btnJoinView">JOIN MATCH</button>
+    </div>
+    <div class="netview" id="netCreate" style="display:none">
+      <div class="optlabel">GIVE YOUR OPPONENT THIS CODE</div>
+      <div id="roomCode">&mdash;</div>
+      <div class="netstatus" id="createStatus"></div>
+    </div>
+    <div class="netview" id="netJoin" style="display:none">
+      <div class="optlabel">ENTER THE MATCH CODE</div>
+      <input id="joinCode" maxlength="4" autocomplete="off" spellcheck="false" inputmode="latin">
+      <button class="btn" id="btnJoinGo">JOIN</button>
+      <div class="netstatus" id="joinStatus"></div>
+    </div>
+    <button class="btn" id="btnOnlineBack">BACK</button>
+  </div>
+</div>
+
+<div class="overlay hidden" id="galleryOverlay">
+  <div class="galtitle">CARD GALLERY</div>
+  <div id="galleryCard"></div>
+  <div id="galleryNav">
+    <div class="garrow" id="galPrev">&#8249;</div>
+    <div id="galleryPos">1 / 30</div>
+    <div class="garrow" id="galNext">&#8250;</div>
+  </div>
+  <div id="galColl"></div>
+  <button class="btn" id="galClose">CLOSE</button>
+</div>
+
+<div class="overlay hidden" id="endOverlay">
+  <h2 id="endTitle">YOU WIN</h2>
+  <div class="detail" id="endDetail"></div>
+  <div class="hidden" id="endReward">
+    <div class="rewardlbl" id="rewardLbl">NEW CARD WON</div>
+    <div id="rewardCard"></div>
+    <button class="btn" id="btnRewardLogin" style="display:none">SIGN UP TO COLLECT</button>
+  </div>
+  <button class="btn" id="btnAgain">PLAY AGAIN</button>
+</div>
+
+<script>
+"use strict";
+
+/* =========================================================
+   CARD LIST  — PLACEHOLDERS.
+   Replace these with your real cards. Each card needs a name
+   and five STAR RATINGS from 0.5 to 5, in half-star steps
+   (0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5):
+   not = Notoriety, mon = Money, str = Strength,
+   int = Intelligence, fam = Fame
+   Higher stars win the round. Equal stars = tie pot.
+
+   ARTWORK: put your jpegs in a folder called "cards" next to
+   this file, then add  img:"cards/filename.jpg"  to a card:
+     {name:"Iron Vic", img:"cards/iron-vic.jpg", hue:8, not:4, ...}
+   Images should be SQUARE, 280 x 280 pixels. They are shown
+   in a gold-framed square box at the top of the card and get
+   cropped to fill it, so keep the subject centred.
+   Cards without an img keep the coloured initials look.
+   ========================================================= */
+const CARDS = [
+  {name:"Premier League Predator",       img:"cctt-adamjohnson.png", hue:210, not:1.5, mon:3,   str:3,   int:1,   fam:2},
+  {name:"Bent Story Teller",             img:"cctt-archer.png",      hue: 30, not:3,   mon:1.5, str:2,   int:5,   fam:2.5},
+  {name:"Baddest Man on the Planet",     img:"cctt-bones.png",       hue:  0, not:3,   mon:5,   str:5,   int:3.5, fam:3},
+  {name:"Tax Dodging Tennis Kraut",      img:"cctt-borisbecker.png", hue: 45, not:1.5, mon:2,   str:3.5, int:2.5, fam:3},
+  {name:"Big Girly Boy",                 img:"cctt-boygeorge.png",   hue:300, not:2,   mon:2.5, str:2,   int:3.5, fam:3.5},
+  {name:"The Pillhead in Black",         img:"cctt-cash.png",        hue: 20, not:3.5, mon:2,   str:3,   int:3,   fam:4},
+  {name:"Fruit Throwing Toilet Perv",    img:"cctt-chuck.png",       hue: 10, not:2.5, mon:3,   str:3,   int:3,   fam:3},
+  {name:"The Diddler",                   img:"cctt-diddy.png",       hue:270, not:5,   mon:3.5, str:2,   int:4,   fam:5},
+  {name:"Ghetto Senna",                  img:"cctt-ghetts.png",      hue:120, not:3,   mon:3,   str:4,   int:2,   fam:1.5},
+  {name:"Gang Leader",                   img:"cctt-glitter.png",     hue:330, not:1,   mon:4,   str:2,   int:3.5, fam:3},
+  {name:"The Godfather",                 img:"cctt-jb.png",          hue:260, not:3.5, mon:3,   str:3,   int:2.5, fam:4},
+  {name:"Age Aint Nothin but a Number",  img:"cctt-kelly.png",       hue: 40, not:2.5, mon:3,   str:3,   int:2,   fam:4},
+  {name:"Sweet as Sugar",                img:"cctt-knight.png",      hue:350, not:4,   mon:4,   str:4,   int:2.5, fam:2},
+  {name:"Mean Girl",                     img:"cctt-lohan.png",       hue: 15, not:2,   mon:1.5, str:1.5, int:3.5, fam:4},
+  {name:"Skid Marky",                    img:"cctt-markymark.png",   hue:200, not:2,   mon:3,   str:4,   int:2,   fam:4},
+  {name:"Virus Freak",                   img:"cctt-mcafee.png",      hue:100, not:2.5, mon:4,   str:2,   int:5,   fam:2},
+  {name:"Dirty Clan Man",                img:"cctt-odb.png",         hue: 60, not:4,   mon:2.5, str:3,   int:1.5, fam:2},
+  {name:"Juice",                         img:"cctt-oj.png",          hue: 25, not:2,   mon:5,   str:4.5, int:1,   fam:4},
+  {name:"Not a Leg to Stand On",         img:"cctt-oscar.png",       hue:180, not:2.5, mon:4,   str:3.5, int:1.5, fam:2.5},
+  {name:"Wham Man!",                     img:"cctt-ourgeorge.png",   hue:220, not:1.5, mon:1,   str:2,   int:2,   fam:5},
+  {name:"Smack Poet",                    img:"cctt-peter.png",       hue:140, not:2.5, mon:2.5, str:3,   int:3,   fam:2.5},
+  {name:"Uppers and Downers",            img:"cctt-rdj.png",         hue:310, not:2,   mon:1.5, str:2.5, int:1.5, fam:4},
+  {name:"Probably Nonced Dogs Too",      img:"cctt-rolf.png",        hue: 35, not:2,   mon:2.5, str:2,   int:3,   fam:3},
+  {name:"The Fixer",                     img:"cctt-savile.png",      hue:290, not:5,   mon:5,   str:2,   int:4,   fam:3.5},
+  {name:"Guess Huw Was On The News",     img:"cctt-hue.png",         hue:230, not:2,   mon:1,   str:2.5, int:3,   fam:2},
+  {name:"Blood Spattered Wall of Sound Man", img:"cctt-spector.png", hue: 50, not:2.5, mon:4,   str:1.5, int:3,   fam:2.5},
+  {name:"Mr Buzz",                       img:"cctt-tim allen.png",   hue:160, not:1.5, mon:2,   str:2.5, int:2.5, fam:3.5},
+  {name:"The Champ",                     img:"cctt-tyson.png",       hue:  5, not:3,   mon:5,   str:5,   int:1.5, fam:5},
+  {name:"Strange Thing",                 img:"cctt-winona.png",      hue:320, not:2,   mon:1,   str:1,   int:1,   fam:4},
+  {name:"Movie Fingers",                 img:"weinstein.png",        hue: 55, not:4.5, mon:2.5, str:1.5, int:4.5, fam:2},
+];
+
+const STATS = [
+  {k:"fam", label:"FAME",         b:"F"},
+  {k:"mon", label:"DANGER",       b:"D"},
+  {k:"str", label:"STRENGTH",     b:"S"},
+  {k:"int", label:"CUNNING",      b:"C"},
+  {k:"not", label:"CLOUT",        b:"CL"},
+];
+
+const G = {
+  deck:[], pPile:[], oPile:[], pot:[],
+  pCard:null, oCard:null,
+  chooser:"p",       // whose pick it is: "p" player, "o" opponent
+  state:"idle",      // idle | dealing | choosing | revealing | over
+  mode:localStorage.getItem("cctt_mode") || "winner", // winner stays on | take turns
+  gametype:localStorage.getItem("cctt_gametype") || "table", // table | trumps
+  gen:0,             // round token — bumps each deal so stale animations can bail
+  modeRestartPending:false, // a mid-game mode change waiting for animations to stop
+  modeRestartGen:0,  // which round the pending restart means to replace
+  pHand:[], oHand:[], handIdx:0, // Top Trumps mode: each player's hand + flick index
+  pWins:0, oWins:0, pPicks:[], battleRound:0, // Battle mode: best-of-5 tally + this turn's picks
+};
+
+const $ = id => document.getElementById(id);
+const wait = ms => new Promise(r => setTimeout(r, ms));
+
+/* =========================================================
+   SOUND — three house tracks rotate quietly in the background,
+   effects punctuate the play. Both switchable in OPTIONS.
+   Music can only start after the player's first tap (browser rule).
+   ========================================================= */
+const SND = {
+  music: localStorage.getItem("cctt_music") !== "off",
+  fx: localStorage.getItem("cctt_fx") !== "off",
+  tracks: ["snd-house1.mp3", "snd-house 2.mp3", "snd-house 3.mp3", "snd-house4.mp3"],
+  bg: null, lastTrack: -1, fxCache: {},
+};
+
+function playFx(file){
+  if(!SND.fx) return;
+  let a = SND.fxCache[file];
+  if(!a){ a = SND.fxCache[file] = new Audio(file); a.volume = 0.7; }
+  a.currentTime = 0;
+  a.play().catch(() => {});
+}
+
+/* warm the fx cache up front — otherwise the very first play of any given
+   sound races the network fetch and can silently produce no audio, while
+   every later call reuses the now-buffered element and plays fine */
+(function preloadSounds(){
+  ["snd-cardflip.mp3", "snd-fight.mp3", "snd-winhand.mp3", "snd-losehand.mp3", "snd-victory.mp3", "snd-loser.mp3"].forEach(file => {
+    const a = new Audio(file);
+    a.volume = 0.7;
+    a.preload = "auto";
+    SND.fxCache[file] = a;
+  });
+})();
+
+function nextTrack(){
+  if(!SND.music) return;
+  let i;
+  do { i = Math.floor(Math.random() * SND.tracks.length); }
+  while (i === SND.lastTrack && SND.tracks.length > 1);
+  SND.lastTrack = i;
+  SND.bg = new Audio(SND.tracks[i]);
+  SND.bg.volume = 0.35;
+  SND.bg.onended = nextTrack;
+  SND.bg.play().catch(() => {});
+}
+
+function applyMusic(){
+  if(SND.music){
+    if(SND.bg){ SND.bg.play().catch(() => {}); } else { nextTrack(); }
+  } else if(SND.bg){
+    SND.bg.pause();
+  }
+}
+/* first tap anywhere unlocks audio and starts the music */
+document.addEventListener("pointerdown", () => { if(!SND.bg) applyMusic(); }, {once:true});
+
+function initials(name){
+  return name.split(/\s+/).map(w => w[0]).join("").slice(0,2).toUpperCase();
+}
+
+/* fallback gradient behind the portrait (shows if a picture is missing) */
+function artGrad(card){
+  return `radial-gradient(circle at 35% 30%, hsla(${card.hue},45%,55%,0.55), transparent 65%),
+          linear-gradient(160deg, hsl(${card.hue},30%,26%), hsl(${card.hue},35%,12%))`;
+}
+/* portrait as a real <img>, cropped by its frame (object-fit: cover) */
+function artHTML(card){
+  return card.img
+    ? `<img class="artimg" src="${card.img}" alt="" draggable="false">`
+    : initials(card.name);
+}
+
+/* ---------- card DOM ---------- */
+function buildCard(card, facedown){
+  const el = document.createElement("div");
+  el.className = "card" + (facedown ? " facedown" : "");
+  const statsHTML = STATS.map(s =>
+    `<div class="stat" data-k="${s.k}">
+       <span class="badge">${s.b}</span>
+       <span class="lbl">${s.label}</span>
+       <span class="starbox">
+         <span class="srow dim">&#9733;&#9733;&#9733;&#9733;&#9733;</span>
+         <span class="srow lit" style="width:${(card[s.k] / 5) * 100}%">&#9733;&#9733;&#9733;&#9733;&#9733;</span>
+       </span>
+     </div>`).join("");
+  el.innerHTML =
+    `<div class="flip">
+       <div class="face front">
+         <div class="art" style="background:${artGrad(card)}">
+           ${artHTML(card)}
+           <div class="cname${card.name.length > 15 ? " long" : ""}">${card.name}</div>
+         </div>
+         <div class="stats">${statsHTML}</div>
+       </div>
+       <div class="face back cardback"></div>
+     </div>`;
+  return el;
+}
+
+function buildMini(card){
+  const el = document.createElement("div");
+  el.className = "mini";
+  el.innerHTML =
+    `<div class="mart" style="background:${artGrad(card)}">${artHTML(card)}</div>
+     <div class="mname">${card.name}</div>`;
+  return el;
+}
+
+/* ---------- fly animation: element travels between two screen rects ---------- */
+function flyBetween(fromRect, toRect, innerHTML, className){
+  return new Promise(res => {
+    const f = document.createElement("div");
+    f.className = "flyer " + (className || "");
+    f.style.left = fromRect.left + "px";
+    f.style.top = fromRect.top + "px";
+    f.style.width = fromRect.width + "px";
+    f.style.height = fromRect.height + "px";
+    f.innerHTML = innerHTML;
+    document.body.appendChild(f);
+    f.getBoundingClientRect(); // reflow
+    const sx = toRect.width / fromRect.width;
+    const sy = toRect.height / fromRect.height;
+    f.style.transform = `translate(${toRect.left - fromRect.left}px, ${toRect.top - fromRect.top}px) scale(${sx},${sy})`;
+    setTimeout(() => { f.remove(); res(); }, 570);
+  });
+}
+
+/* ---------- UI helpers ---------- */
+function setBanner(text, red){
+  const b = $("banner");
+  if(!text){ b.classList.remove("show"); return; }
+  b.textContent = text;
+  b.classList.toggle("red", !!red);
+  b.classList.add("show");
+}
+
+function updateCounts(){
+  $("deckCount").textContent = G.deck.length;
+  $("playerScoreN").textContent = G.pPile.length;
+  $("oppScoreN").textContent = G.oPile.length;
+  $("potN").textContent = G.pot.length;
+  $("pot").classList.toggle("show", G.pot.length > 0);
+}
+
+function addToPile(pileEl, card, idx){
+  const mini = buildMini(card);
+  const n = pileEl.children.length;
+  const off = Math.min(n, 12);
+  mini.style.transform =
+    `translate(${off * 2.4}px, ${off * 2}px) rotate(${((n * 7) % 9) - 4}deg)`;
+  pileEl.appendChild(mini);
+}
+
+/* ---------- shuffle ---------- */
+function shuffle(a){
+  for(let i = a.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+/* ---------- game flow ---------- */
+function newGame(){
+  $("table").classList.remove("trumps", "battle");
+  G.deck = shuffle(CARDS.slice());
+  G.pPile = []; G.oPile = []; G.pot = [];
+  G.pCard = null; G.oCard = null;
+  G.chooser = "p";
+  G.state = "idle";
+  G.modeRestartPending = false;
+  $("playerPile").innerHTML = "";
+  $("oppPile").innerHTML = "";
+  $("playerSlot").innerHTML = "";
+  $("oppSlot").innerHTML = "";
+  setBanner("");
+  updateCounts();
+  startRound();
+}
+
+async function startRound(){
+  if(G.state === "over") return; // match was exited mid-round
+  if(G.deck.length < 2){ return endGame(); }
+  const gen = ++G.gen;           // this round's token; a re-deal bumps it and strands stale awaits
+  G.state = "dealing";
+
+  G.pCard = G.deck.pop();
+  G.oCard = G.deck.pop();
+
+  // online: tell the guest their card now so both tables animate together
+  if(NET.live && NET.role === "host"){
+    netSend({t:"deal", you:G.oCard, deck:G.deck.length,
+             chooser: G.chooser === "p" ? "host" : "guest"});
+  }
+
+  const deckR = $("deck").getBoundingClientRect();
+  const pSlotR = $("playerSlot").getBoundingClientRect();
+  const oSlotR = $("oppSlot").getBoundingClientRect();
+  const backHTML = `<div class="cardback" style="position:absolute;inset:0;border-radius:10px"></div>`;
+
+  // opponent card slides out first, then the player's
+  $("deck").classList.add("drawing");
+  playFx("snd-cardflip.mp3");
+  await flyBetween(deckR, oSlotR, backHTML);
+  const oEl = buildCard(G.oCard, true);
+  $("oppSlot").appendChild(oEl);
+  updateCounts();
+
+  playFx("snd-cardflip.mp3");
+  await flyBetween(deckR, pSlotR, backHTML);
+  const pEl = buildCard(G.pCard, false);
+  pEl.classList.add("facedown");
+  $("playerSlot").appendChild(pEl);
+  pEl.getBoundingClientRect();
+  pEl.classList.remove("facedown"); // flip player card face up
+  $("deck").classList.remove("drawing");
+  updateCounts();
+
+  await wait(700);
+  if(G.gen !== gen) return;      // superseded during the deal
+  G.state = "choosing";
+
+  // animations have stopped — safe to honour a pending mode change now
+  checkModeRestart();
+  if(G.gen !== gen) return;      // a mode change re-dealt this round
+
+  if(G.chooser === "p"){
+    setBanner("YOUR TURN");
+    pEl.classList.add("pickable");
+    pEl.querySelectorAll(".stat").forEach(s => {
+      s.addEventListener("click", () => {
+        if(G.state !== "choosing") return;
+        resolveRound(s.dataset.k);
+      });
+    });
+  } else {
+    setBanner("OPPONENT'S TURN", true);
+    if(NET.live && NET.role === "host"){
+      // real opponent: their pick arrives as a message (may already be waiting)
+      if(NET.pendingPick){
+        const k = NET.pendingPick; NET.pendingPick = null;
+        resolveRound(k);
+      }
+    } else {
+      await wait(1400 + Math.random() * 800);
+      if(G.gen !== gen || G.state !== "choosing") return;
+      resolveRound(cpuChoose(G.oCard));
+    }
+  }
+}
+
+/* deal a fresh round in place of the current one, keeping scores.
+   Called only from a stable "choosing" state (no animation running). */
+function requestModeRestart(){
+  if(G.gametype !== "table") return;                             // Top Trumps handles turns itself
+  if(NET.live) return;                                           // online: host's option rules
+  if(!$("startOverlay").classList.contains("hidden")) return;    // sitting on the menu
+  if(!$("endOverlay").classList.contains("hidden")) return;      // match already over
+  if(G.state === "over" || G.state === "idle") return;
+  G.modeRestartPending = true;
+  G.modeRestartGen = G.gen;      // the round now in play is the one to replace
+  checkModeRestart();            // if animations have already stopped, do it right away
+}
+
+function checkModeRestart(){
+  if(!G.modeRestartPending) return;
+  if(NET.live){ G.modeRestartPending = false; return; }
+  if(G.state !== "choosing") return;              // still animating — wait for it to settle
+  if(G.gen !== G.modeRestartGen){ G.modeRestartPending = false; return; } // already a fresh round
+  G.modeRestartPending = false;
+  // send the two dealt cards to the bottom of the deck and deal anew
+  if(G.oCard) G.deck.unshift(G.oCard);
+  if(G.pCard) G.deck.unshift(G.pCard);
+  G.pCard = null; G.oCard = null;
+  $("playerSlot").innerHTML = "";
+  $("oppSlot").innerHTML = "";
+  setBanner("");
+  updateCounts();
+  startRound();
+}
+
+function cpuChoose(card){
+  const sorted = STATS.map(s => s.k).sort((a, b) => card[b] - card[a]);
+  // usually plays its best stat, sometimes its second best
+  return (Math.random() < 0.8) ? sorted[0] : sorted[1];
+}
+
+async function resolveRound(key){
+  G.state = "revealing";
+
+  // online: send the guest everything they need to play out the reveal
+  if(NET.live && NET.role === "host"){
+    const pv = G.pCard[key], ov = G.oCard[key];
+    netSend({t:"result", k:key, opp:G.pCard, deck:G.deck.length,
+             winner: pv > ov ? "host" : (ov > pv ? "guest" : "tie")});
+  }
+
+  const pEl = $("playerSlot").querySelector(".card");
+  const oEl = $("oppSlot").querySelector(".card");
+  pEl.classList.remove("pickable");
+
+  const label = STATS.find(s => s.k === key).label;
+  setBanner(label);
+
+  // highlight chosen stat on the player card
+  pEl.querySelector(`.stat[data-k="${key}"]`).classList.add("chosen");
+  await wait(750);            // anticipation
+
+  playFx("snd-cardflip.mp3");
+  oEl.classList.remove("facedown");   // the reveal
+  await wait(700);
+  oEl.querySelector(`.stat[data-k="${key}"]`).classList.add("chosen");
+  await wait(650);
+
+  const pv = G.pCard[key], ov = G.oCard[key];
+  const wonCards = [G.pCard, G.oCard, ...G.pot];
+  G.pot = [];
+
+  if(pv === ov){
+    // tie — cards go to the pot; in take-turns mode the pick still rotates
+    G.pot = wonCards;
+    if(G.mode === "turns"){ G.chooser = (G.chooser === "p") ? "o" : "p"; }
+    setBanner("TIE — CARDS GO TO THE POT", true);
+    await wait(2600);
+    await sweepTo(pEl, oEl, $("pot"), null);
+    updateCounts();
+    await wait(400);
+    startRound();
+    return;
+  }
+
+  const playerWon = pv > ov;
+  const winEl = playerWon ? pEl : oEl;
+  const loseEl = playerWon ? oEl : pEl;
+  winEl.classList.add("roundwin");
+  winEl.querySelector(`.stat[data-k="${key}"]`).classList.add("winstat");
+  loseEl.classList.add("roundlose");
+  playFx(playerWon ? "snd-winhand.mp3" : "snd-losehand.mp3");
+  setBanner(playerWon ? "YOU TAKE THE ROUND" : "OPPONENT TAKES THE ROUND", !playerWon);
+
+  await wait(2800);
+
+  const pileEl = playerWon ? $("playerPile") : $("oppPile");
+  if(playerWon){ G.pPile.push(...wonCards); } else { G.oPile.push(...wonCards); }
+  G.chooser = (G.mode === "turns")
+    ? (G.chooser === "p" ? "o" : "p")   // take turns: pick rotates every hand
+    : (playerWon ? "p" : "o");          // winner stays on
+
+
+  await sweepTo(pEl, oEl, pileEl, wonCards);
+  updateCounts();
+  await wait(450);
+  startRound();
+}
+
+/* both battle cards fly to a destination (pile or pot) */
+async function sweepTo(pEl, oEl, destEl, cards){
+  const destR = destEl.getBoundingClientRect();
+  const target = {
+    left: destR.left, top: destR.top,
+    width: Math.max(destR.width * 0.6, 40),
+    height: Math.max(destR.height * 0.6, 56),
+  };
+  const jobs = [pEl, oEl].map(el => {
+    const r = el.getBoundingClientRect();
+    const html = `<div class="cardback" style="position:absolute;inset:0;border-radius:10px"></div>`;
+    el.remove();
+    return flyBetween(r, target, html);
+  });
+  await Promise.all(jobs);
+  if(cards){ cards.forEach(c => addToPile(destEl, c)); }
+  setBanner("");
+}
+
+function endGame(){
+  G.state = "over";
+  resetEndReward();
+  if(NET.live && NET.role === "host"){
+    netSend({t:"end", host:G.pPile.length, guest:G.oPile.length});
+  }
+  const p = G.pPile.length, o = G.oPile.length;
+  const t = $("endTitle"), d = $("endDetail");
+  if(p > o){ t.textContent = "YOU WIN THE TABLE"; playFx("snd-victory.mp3"); }
+  else if(o > p){ t.textContent = "OPPONENT WINS"; playFx("snd-loser.mp3"); }
+  else { t.textContent = "DEAD EVEN"; }
+  d.textContent = `YOU ${p} — ${o} OPPONENT`;
+  $("endOverlay").classList.remove("hidden");
+}
+
+/* =========================================================
+   TOP TRUMPS MODE (practice) — classic rules
+   The pack is split into two hands. You always play the TOP
+   card of your pile (no cherry-picking) and only choose which
+   stat to challenge on; the opponent reveals their top card.
+   Winner takes both to the bottom of their hand. Take the lot.
+   ========================================================= */
+function updateTrumpsCounts(){
+  $("playerScoreN").textContent = G.pHand.length;
+  $("oppScoreN").textContent = G.oHand.length;
+  $("potN").textContent = G.pot.length;
+  $("pot").classList.toggle("show", G.pot.length > 0);
+}
+
+function removeCard(arr, card){ const i = arr.indexOf(card); if(i >= 0) arr.splice(i, 1); }
+
+function newTrumpsGame(){
+  const d = shuffle(CARDS.slice());
+  const half = Math.ceil(d.length / 2);
+  G.pHand = d.slice(0, half);
+  G.oHand = d.slice(half);
+  G.pot = []; G.handIdx = 0; G.chooser = "p"; G.state = "idle";
+  G.modeRestartPending = false;
+  $("table").classList.add("trumps");
+  $("playerSlot").innerHTML = ""; $("oppSlot").innerHTML = "";
+  $("playerPile").innerHTML = ""; $("oppPile").innerHTML = "";
+  setBanner(""); updateTrumpsCounts();
+  // online: the guest gets their own real hand, plus just the opponent's count
+  if(NET.live && NET.role === "host"){
+    netSend({t:"trumpsDeal", yourHand:G.oHand, oppCount:G.pHand.length});
+  }
+  trumpsTurn();
+}
+
+async function trumpsTurn(){
+  if(G.state === "over") return;
+  if(G.pHand.length === 0 || G.oHand.length === 0){ return trumpsEnd(); }
+  G.state = "choosing";
+  $("playerSlot").innerHTML = ""; $("oppSlot").innerHTML = "";
+  const pTop = G.pHand[0], oTop = G.oHand[0];
+
+  if(G.chooser === "p"){
+    // opponent's top card sits hidden; you challenge on your top card's stat
+    $("oppSlot").appendChild(buildCard(oTop, true));
+    const el = buildCard(pTop, false);
+    el.classList.add("pickable");
+    el.querySelectorAll(".stat").forEach(s => {
+      s.addEventListener("click", () => {
+        if(G.state !== "choosing" || G.chooser !== "p") return;
+        trumpsResolve(pTop, oTop, s.dataset.k);
+      });
+    });
+    $("playerSlot").appendChild(el);
+    setBanner("YOUR TURN");
+  } else {
+    // your top card defends (face up); the opponent challenges on their top card
+    $("playerSlot").appendChild(buildCard(pTop, false));
+    $("oppSlot").appendChild(buildCard(oTop, true));
+    setBanner("OPPONENT'S TURN", true);
+    if(NET.live && NET.role === "host"){
+      // real opponent: their pick arrives as a message (may already be waiting)
+      if(NET.pendingPick){
+        const k = NET.pendingPick; NET.pendingPick = null;
+        trumpsResolve(pTop, oTop, k);
+      }
+    } else {
+      await wait(1300 + Math.random() * 700);
+      if(G.state !== "choosing") return;
+      trumpsResolve(pTop, oTop, cpuChoose(oTop));
+    }
+  }
+}
+
+async function trumpsResolve(pCard, oCard, key){
+  G.state = "revealing";
+
+  /* whose turn comes next is decided HERE, once, by whoever runs the game.
+     Online, the guest is TOLD via the result message — it must never work
+     this out from its own options, because a per-device mismatch would make
+     the two phones disagree about whose turn it is (each then looks like
+     it's playing a CPU). Top Trumps is ALWAYS winner-stays-on — the
+     take-turns option applies to The Table only. */
+  const pv0 = pCard[key], ov0 = oCard[key];
+  const nextChooser = pv0 === ov0 ? G.chooser : (pv0 > ov0 ? "p" : "o"); // a tie keeps the picker
+
+  // online: send the guest everything they need to play out the reveal
+  if(NET.live && NET.role === "host"){
+    netSend({t:"trumpsResult", k:key, hostCard:pCard, guestCard:oCard,
+             winner: pv0 > ov0 ? "host" : (ov0 > pv0 ? "guest" : "tie"),
+             next: nextChooser === "p" ? "host" : "guest"});
+  }
+
+  // yours face up, theirs face down — rebuild both so the state is always consistent
+  $("playerSlot").innerHTML = "";
+  const pEl = buildCard(pCard, false);
+  $("playerSlot").appendChild(pEl);
+  $("oppSlot").innerHTML = "";
+  const oEl = buildCard(oCard, true);
+  $("oppSlot").appendChild(oEl);
+
+  setBanner(STATS.find(s => s.k === key).label);
+  pEl.querySelector(`.stat[data-k="${key}"]`).classList.add("chosen");
+  await wait(750);
+
+  playFx("snd-cardflip.mp3");
+  oEl.classList.remove("facedown");
+  await wait(700);
+  oEl.querySelector(`.stat[data-k="${key}"]`).classList.add("chosen");
+  await wait(650);
+
+  const pv = pCard[key], ov = oCard[key];
+  removeCard(G.pHand, pCard);
+  removeCard(G.oHand, oCard);
+  const wonCards = [pCard, oCard, ...G.pot];
+  G.pot = [];
+
+  if(pv === ov){
+    G.pot = wonCards;
+    G.chooser = nextChooser;
+    setBanner("TIE — CARDS GO TO THE POT", true);
+    await wait(2600);
+    await sweepTo(pEl, oEl, $("pot"), null);
+    updateTrumpsCounts();
+    await wait(400);
+    trumpsTurn();
+    return;
+  }
+
+  const playerWon = pv > ov;
+  const winEl = playerWon ? pEl : oEl;
+  const loseEl = playerWon ? oEl : pEl;
+  winEl.classList.add("roundwin");
+  winEl.querySelector(`.stat[data-k="${key}"]`).classList.add("winstat");
+  loseEl.classList.add("roundlose");
+  playFx(playerWon ? "snd-winhand.mp3" : "snd-losehand.mp3");
+  setBanner(playerWon ? "YOU TAKE THE CARDS" : "OPPONENT TAKES THE CARDS", !playerWon);
+  await wait(2800);
+
+  if(playerWon){ G.pHand.push(...wonCards); } else { G.oHand.push(...wonCards); }
+  G.chooser = nextChooser;
+  G.handIdx = 0;
+
+  await sweepTo(pEl, oEl, playerWon ? $("playerScore") : $("oppScore"), null);
+  updateTrumpsCounts();
+  await wait(450);
+  trumpsTurn();
+}
+
+function trumpsEnd(){
+  G.state = "over";
+  resetEndReward();
+  if(NET.live && NET.role === "host"){
+    netSend({t:"trumpsEnd", host:G.pHand.length, guest:G.oHand.length});
+  }
+  const p = G.pHand.length, o = G.oHand.length;
+  const t = $("endTitle"), d = $("endDetail");
+  if(o === 0 && p > 0){
+    t.textContent = "YOU WIN THE PACK"; playFx("snd-victory.mp3");
+    rollTrumpsReward();   // server rolls a card for the album (or invites a login)
+  }
+  else if(p === 0 && o > 0){ t.textContent = "OPPONENT WINS"; playFx("snd-loser.mp3"); }
+  else { t.textContent = "DEAD EVEN"; }
+  d.textContent = `YOU ${p} — ${o} OPPONENT`;
+  $("endOverlay").classList.remove("hidden");
+}
+
+/* =========================================================
+   BATTLE MODE (practice) — best of 5
+   15 cards each. Each turn you commit 3 cards, the CPU commits
+   3, then a RANDOM attribute is rolled: the higher combined
+   total of that attribute across the trio wins the battle.
+   Used cards are discarded. First to 3 battle wins takes it.
+   ========================================================= */
+const fmtSum = n => (n % 1 === 0) ? String(n) : n.toFixed(1);
+
+function pipHTML(w){
+  let s = "";
+  for(let i = 0; i < 3; i++) s += `<span class="pip${i < w ? " on" : ""}"></span>`;
+  return s;
+}
+function updateBattle(){
+  $("battlePipsYou").innerHTML = pipHTML(G.pWins);
+  $("battlePipsOpp").innerHTML = pipHTML(G.oWins);
+  $("playerScoreN").textContent = G.pHand.length;  // cards left to commit
+  $("oppScoreN").textContent = G.oHand.length;
+}
+
+function newBattleGame(){
+  const d = shuffle(CARDS.slice());
+  G.pHand = d.slice(0, 15); G.oHand = d.slice(15);
+  G.pWins = 0; G.oWins = 0; G.battleRound = 0; G.pPicks = [];
+  G.state = "idle";
+  $("table").classList.add("battle");
+  setBanner(""); updateBattle();
+  NET.battleHostPicks = null; NET.battleGuestPicks = null;
+  if(NET.live && NET.role === "host"){
+    netSend({t:"battleDeal", yourHand:G.oHand, oppCount:G.pHand.length});
+  }
+  battlePickPhase();
+}
+
+function battlePickPhase(){
+  if(G.pHand.length === 0){ return battleEnd(); }
+  G.battleRound++;
+  G.pPicks = [];
+  G.state = "picking";
+  $("battleResolve").style.display = "none";
+  $("battlePick").style.display = "flex";
+  renderBattleHand();
+  refreshPickUI();
+}
+
+function renderBattleHand(){
+  const wrap = $("battleHand");
+  wrap.innerHTML = "";
+  G.pHand.forEach(card => {
+    const slot = document.createElement("div");
+    slot.className = "bslot";
+    slot._card = card;
+    slot.appendChild(buildCard(card, false));
+    const num = document.createElement("div");
+    num.className = "selnum";
+    slot.appendChild(num);
+    slot.addEventListener("click", () => togglePick(card));
+    wrap.appendChild(slot);
+  });
+}
+
+function togglePick(card){
+  if(G.state !== "picking") return;
+  const i = G.pPicks.indexOf(card);
+  if(i >= 0){ G.pPicks.splice(i, 1); }
+  else if(G.pPicks.length < 3){ G.pPicks.push(card); }
+  refreshPickUI();
+}
+
+function refreshPickUI(){
+  document.querySelectorAll("#battleHand .bslot").forEach(slot => {
+    const idx = G.pPicks.indexOf(slot._card);
+    slot.classList.toggle("sel", idx >= 0);
+    slot.querySelector(".selnum").textContent = idx >= 0 ? (idx + 1) : "";
+  });
+  $("battlePickBanner").textContent = `PICK 3 FOR BATTLE  (${G.pPicks.length} / 3)`;
+  const ready = G.pPicks.length === 3;
+  const btn = $("btnBattleGo");
+  btn.style.opacity = ready ? "1" : "0.4";
+  btn.style.pointerEvents = ready ? "auto" : "none";
+}
+
+function cpuPickThree(hand){
+  // prefer stronger cards (attribute is random, so overall pips matter)
+  const scored = hand.map(c => ({ c, tot: STATS.reduce((s, st) => s + c[st.k], 0) }));
+  scored.sort((a, b) => b.tot - a.tot);
+  const pool = scored.slice(0, Math.min(hand.length, 6)).map(x => x.c);
+  shuffle(pool);
+  return pool.slice(0, 3);
+}
+
+function buildBattleCard(card, key){
+  const v = card[key];
+  const el = document.createElement("div");
+  el.className = "bcardR";
+  el.innerHTML =
+    `<div class="bcArt" style="background:${artGrad(card)}">
+       ${artHTML(card)}
+       <div class="bcName">${card.name}</div>
+     </div>
+     <div class="bcStat">
+       <span class="starbox" style="font-size:14px">
+         <span class="srow dim">&#9733;&#9733;&#9733;&#9733;&#9733;</span>
+         <span class="srow lit" style="width:${(v / 5) * 100}%">&#9733;&#9733;&#9733;&#9733;&#9733;</span>
+       </span>
+     </div>`;
+  return el;
+}
+
+async function startBattle(){
+  if(G.state !== "picking" || G.pPicks.length !== 3) return;
+  const yours = G.pPicks.slice();
+  yours.forEach(c => removeCard(G.pHand, c));
+  G.state = "revealing";
+
+  if(NET.live){
+    if(NET.role === "host"){
+      NET.battleHostPicks = yours;
+      $("battlePickBanner").textContent = "WAITING FOR OPPONENT…";
+      tryBattleResolveOnline();
+    } else {
+      netSend({t:"battlePicks", picks:yours});
+      $("battlePickBanner").textContent = "WAITING FOR OPPONENT…";
+    }
+    return;
+  }
+
+  $("battlePick").style.display = "none";
+  const theirs = cpuPickThree(G.oHand);
+  theirs.forEach(c => removeCard(G.oHand, c));
+  const key = STATS[Math.floor(Math.random() * STATS.length)].k;
+  await battleIntroParade(yours, theirs);
+  battleResolve(yours, theirs, key);
+}
+
+/* online battle: resolves once BOTH sides' picks have arrived — host is
+   authoritative for the random attribute and the win, guest just replays it */
+function tryBattleResolveOnline(){
+  if(!NET.battleHostPicks || !NET.battleGuestPicks) return;
+  const yours = NET.battleHostPicks, theirs = NET.battleGuestPicks;
+  NET.battleHostPicks = null; NET.battleGuestPicks = null;
+  battleGoOnline(yours, theirs);
+}
+
+async function battleGoOnline(yours, theirs){
+  $("battlePick").style.display = "none";
+  G.oHand.splice(0, 3); // opponent's tracked hand shrinks by their 3 committed cards
+  const key = STATS[Math.floor(Math.random() * STATS.length)].k;
+  const pv = yours.reduce((s, c) => s + c[key], 0), ov = theirs.reduce((s, c) => s + c[key], 0);
+  netSend({t:"battleResult", key, host:yours, guest:theirs,
+           winner: pv > ov ? "host" : (ov > pv ? "guest" : "tie")});
+  await battleIntroParade(yours, theirs);
+  battleResolve(yours, theirs, key);
+}
+
+/* full-screen parade: your 3 picks fly past, a VS divider, then their 3 —
+   before the cards settle small into their battle-ready positions */
+async function battleIntroParade(yours, theirs){
+  const intro = $("battleIntro");
+  intro.classList.add("show");
+
+  for(const card of yours) await paradeCard(card);
+  await paradeVS();
+  for(const card of theirs) await paradeCard(card);
+
+  intro.classList.remove("show");
+}
+
+async function paradeCard(card){
+  const host = $("biCard");
+  host.innerHTML = "";
+  host.appendChild(buildCard(card, false));
+  host.classList.remove("enter", "exit");
+  void host.offsetWidth;             // restart the transition from the off-screen state
+  host.classList.add("enter");
+  playFx("snd-cardflip.mp3");
+  await wait(400);                   // slide in
+  await wait(180);                   // hold, enlarged, centre screen
+  host.classList.remove("enter");
+  host.classList.add("exit");
+  await wait(380);                   // slide out
+  host.classList.remove("exit");
+  host.innerHTML = "";
+}
+
+async function paradeVS(){
+  const vs = $("biVS");
+  vs.classList.add("show");
+  await wait(650);
+  vs.classList.remove("show");
+  await wait(280);
+}
+
+async function battleResolve(yours, theirs, key){
+  const oSum = theirs.reduce((s, c) => s + c[key], 0);
+  const pSum = yours.reduce((s, c) => s + c[key], 0);
+  const winnerSide = pSum > oSum ? "you" : (oSum > pSum ? "opp" : "tie");
+  await battleResolveVisual(yours, theirs, key, winnerSide);
+}
+
+/* shared clash/reveal choreography — used for local & host-authoritative
+   play, and reused as-is by the online guest mirror (guestBattleResolve) */
+async function battleResolveVisual(yours, theirs, key, winnerSide){
+  G.state = "revealing";
+  $("battlePick").style.display = "none";
+  $("battleResolve").style.display = "flex";
+  const st = STATS.find(s => s.k === key);
+
+  const oppWrap = $("brOpp"), youWrap = $("brYou");
+  oppWrap.innerHTML = ""; youWrap.innerHTML = "";
+  theirs.forEach(c => oppWrap.appendChild(buildBattleCard(c, key)));
+  yours.forEach(c => youWrap.appendChild(buildBattleCard(c, key)));
+
+  const oSum = theirs.reduce((s, c) => s + c[key], 0);
+  const pSum = yours.reduce((s, c) => s + c[key], 0);
+  $("brMid").innerHTML = `<div class="attr">${st.label}</div>`;
+  $("brOppSum").textContent = "?";
+  $("brYouSum").textContent = "?";
+
+  // the two trios charge at each other and clash together before the sums land
+  await wait(150);
+  oppWrap.classList.add("clash-opp");
+  youWrap.classList.add("clash-you");
+  await wait(330);                              // time to the moment of impact
+  playFx("snd-fight.mp3");
+  $("battleResolve").classList.add("shake");
+  $("brMid").classList.add("impact");
+  await wait(500);
+  oppWrap.classList.remove("clash-opp");
+  youWrap.classList.remove("clash-you");
+  $("battleResolve").classList.remove("shake");
+  $("brMid").classList.remove("impact");
+
+  $("brOppSum").textContent = fmtSum(oSum);
+  $("brYouSum").textContent = fmtSum(pSum);
+  await wait(700);
+
+  let res, red = false;
+  if(winnerSide === "you"){
+    G.pWins++; res = "YOU WIN THE BATTLE";
+    [...youWrap.children].forEach(el => el.classList.add("win"));
+    playFx("snd-winhand.mp3");
+  } else if(winnerSide === "opp"){
+    G.oWins++; res = "OPPONENT WINS THE BATTLE"; red = true;
+    [...oppWrap.children].forEach(el => el.classList.add("win"));
+    playFx("snd-losehand.mp3");
+  } else {
+    res = "BATTLE DRAWN"; red = true;
+  }
+  $("brMid").innerHTML = `<div class="attr">${st.label}</div><div class="res${red ? " red" : ""}">${res}</div>`;
+  updateBattle();
+  await wait(3400);
+
+  if(G.pWins === 3 || G.oWins === 3 || (G.pHand.length === 0 && G.oHand.length === 0)){
+    if(!NET.live || NET.role === "host"){ return battleEnd(); }
+    return; // online guest: the authoritative end arrives via the "battleEnd" message
+  }
+  battlePickPhase();
+}
+
+function battleEnd(){
+  G.state = "over";
+  resetEndReward();
+  if(NET.live && NET.role === "host"){
+    netSend({t:"battleEnd", host:G.pWins, guest:G.oWins});
+  }
+  const t = $("endTitle"), d = $("endDetail");
+  if(G.pWins > G.oWins){ t.textContent = "YOU WIN THE WAR"; playFx("snd-victory.mp3"); }
+  else if(G.oWins > G.pWins){ t.textContent = "OPPONENT WINS"; playFx("snd-loser.mp3"); }
+  else { t.textContent = "DEAD EVEN"; }
+  d.textContent = `BATTLES  YOU ${G.pWins} — ${G.oWins} OPPONENT`;
+  $("endOverlay").classList.remove("hidden");
+}
+
+/* start the right game type for a solo match */
+function startMatch(){
+  $("table").classList.remove("trumps", "battle");
+  if(G.gametype === "trumps"){ newTrumpsGame(); }
+  else if(G.gametype === "battle"){ newBattleGame(); }
+  else { newGame(); }
+}
+
+/* =========================================================
+   ACCOUNT — optional. Play needs nothing; the card album and
+   trading need a login. Sessions are bearer tokens in
+   localStorage, validated by the worker against D1.
+   ========================================================= */
+const AUTH = {
+  token: localStorage.getItem("cctt_session_token") || null,
+  username: localStorage.getItem("cctt_username") || null,
+};
+
+function setAuth(token, username){
+  AUTH.token = token; AUTH.username = username;
+  localStorage.setItem("cctt_session_token", token);
+  localStorage.setItem("cctt_username", username);
+}
+function clearAuth(){
+  AUTH.token = null; AUTH.username = null;
+  localStorage.removeItem("cctt_session_token");
+  localStorage.removeItem("cctt_username");
+}
+
+/* POST when body given, GET otherwise; throws Error(message) on any failure.
+   A 401 with a stored token means the session expired — degrade to logged out. */
+async function api(path, body){
+  const opts = { method: body ? "POST" : "GET", headers: {} };
+  if(body){ opts.headers["Content-Type"] = "application/json"; opts.body = JSON.stringify(body); }
+  if(AUTH.token) opts.headers["Authorization"] = "Bearer " + AUTH.token;
+  const res = await fetch(API_BASE + path, opts);
+  let data = {};
+  try{ data = await res.json(); }catch{}
+  if(!res.ok){
+    if(res.status === 401 && AUTH.token && path !== "/api/login"){ clearAuth(); renderAccount(); }
+    throw new Error(data.error || "request failed");
+  }
+  return data;
+}
+
+/* ---------- account overlay ---------- */
+function accView(which){
+  ["accHome","accLogin","accSignup","accCode","accRecover"].forEach(id =>
+    $(id).style.display = (id === which) ? "flex" : "none");
+  // while the recovery code is up, BACK is hidden — saving it is the only way on
+  $("btnAccBack").style.display = (which === "accCode") ? "none" : "";
+}
+
+function renderAccount(){
+  const inBtn = $("btnAccLoginView"), upBtn = $("btnAccSignupView"), outBtn = $("btnAccLogout");
+  if(AUTH.token){
+    $("accWho").textContent = "LOGGED IN AS " + AUTH.username.toUpperCase();
+    inBtn.style.display = "none"; upBtn.style.display = "none"; outBtn.style.display = "";
+  } else {
+    $("accWho").textContent = "Not logged in. An account keeps your card album safe and lets you trade with friends.";
+    inBtn.style.display = ""; upBtn.style.display = ""; outBtn.style.display = "none";
+  }
+}
+
+function openAccount(view){
+  renderAccount();
+  accView(view || "accHome");
+  ["liStatus","suStatus","rcStatus"].forEach(id => { $(id).textContent = ""; $(id).classList.remove("bad"); });
+  $("accountOverlay").classList.remove("hidden");
+}
+
+$("btnAccount").addEventListener("click", () => openAccount());
+$("btnAccBack").addEventListener("click", () => {
+  const home = $("accHome").style.display !== "none";
+  if(home){ $("accountOverlay").classList.add("hidden"); }
+  else { accView("accHome"); renderAccount(); }
+});
+$("btnAccLoginView").addEventListener("click", () => accView("accLogin"));
+$("btnAccSignupView").addEventListener("click", () => accView("accSignup"));
+$("lnkRecover").addEventListener("click", () => accView("accRecover"));
+
+$("btnAccLoginGo").addEventListener("click", async () => {
+  const st = $("liStatus");
+  st.textContent = "LOGGING IN…"; st.classList.remove("bad");
+  try{
+    const d = await api("/api/login", { username: $("liName").value.trim(), password: $("liPass").value });
+    setAuth(d.token, d.username);
+    $("liPass").value = "";
+    $("accountOverlay").classList.add("hidden");
+  }catch(e){ st.textContent = e.message.toUpperCase(); st.classList.add("bad"); }
+});
+
+$("btnAccSignupGo").addEventListener("click", async () => {
+  const st = $("suStatus");
+  st.textContent = "CREATING ACCOUNT…"; st.classList.remove("bad");
+  try{
+    const d = await api("/api/signup", { username: $("suName").value.trim(), password: $("suPass").value });
+    setAuth(d.token, d.username);
+    $("suPass").value = "";
+    $("recCodeBox").textContent = d.recoveryCode;   // shown exactly once, never stored
+    accView("accCode");
+  }catch(e){ st.textContent = e.message.toUpperCase(); st.classList.add("bad"); }
+});
+
+$("btnAccCodeDone").addEventListener("click", () => {
+  $("recCodeBox").textContent = "—";
+  $("accountOverlay").classList.add("hidden");
+});
+
+$("btnAccRecoverGo").addEventListener("click", async () => {
+  const st = $("rcStatus");
+  st.textContent = "RESETTING…"; st.classList.remove("bad");
+  try{
+    const d = await api("/api/recover", {
+      username: $("rcName").value.trim(),
+      recoveryCode: $("rcCode").value,
+      newPassword: $("rcPass").value,
+    });
+    setAuth(d.token, d.username);
+    $("rcPass").value = ""; $("rcCode").value = "";
+    $("accountOverlay").classList.add("hidden");
+  }catch(e){ st.textContent = e.message.toUpperCase(); st.classList.add("bad"); }
+});
+
+$("btnAccLogout").addEventListener("click", async () => {
+  try{ await api("/api/logout", {}); }catch{}
+  clearAuth();
+  renderAccount();
+});
+
+// enter submits whichever account form is open
+[["liPass","btnAccLoginGo"],["suPass","btnAccSignupGo"],["rcPass","btnAccRecoverGo"]].forEach(([inp, btn]) => {
+  $(inp).addEventListener("keydown", e => { if(e.key === "Enter") $(btn).click(); });
+});
+
+/* ---------- the card reward (Top Trumps match wins only) ---------- */
+function resetEndReward(){
+  $("endReward").classList.add("hidden");
+  $("btnRewardLogin").style.display = "none";
+  $("rewardCard").innerHTML = "";
+}
+
+/* fire-and-forget from the two trumps win branches: the server rolls the
+   card (or we invite a login). The end overlay is already up; the card
+   arriving a beat later reads as a bonus reveal. */
+async function rollTrumpsReward(){
+  if(!AUTH.token){
+    $("rewardLbl").textContent = "YOU'D HAVE WON A CARD FOR YOUR ALBUM";
+    $("btnRewardLogin").style.display = "";
+    $("endReward").classList.remove("hidden");
+    return;
+  }
+  try{
+    const d = await api("/api/collection/award", {});
+    const card = CARDS.find(c => c.img === d.img);
+    if(!card) return;
+    $("rewardLbl").textContent = (d.count > 1) ? `NEW CARD WON — DUPLICATE ×${d.count}` : "NEW CARD WON";
+    $("rewardCard").innerHTML = "";
+    $("rewardCard").appendChild(buildCard(card, false));
+    $("endReward").classList.remove("hidden");
+  }catch(e){ /* cooldown or network blip — the win screen stands on its own */ }
+}
+$("btnRewardLogin").addEventListener("click", () => openAccount("accSignup"));
+
+/* =========================================================
+   TRADING — swap duplicates with a friend by username.
+   The server enforces the one hard rule on BOTH sides:
+   only a card you hold twice can ever leave your album.
+   ========================================================= */
+const TR = { coll:null, offer:null, want:null };
+
+function trMini(card, badgeText){
+  const el = document.createElement("div");
+  el.className = "trmini";
+  el.innerHTML =
+    `<div class="mart" style="background:${artGrad(card)}">${artHTML(card)}</div>
+     <div class="mname">${card.name}</div>`;
+  if(badgeText){
+    const b = document.createElement("div");
+    b.className = "dupen";
+    b.textContent = badgeText;
+    el.appendChild(b);
+  }
+  return el;
+}
+const cardByImg = img => CARDS.find(c => c.img === img);
+
+function trView(which){
+  ["trHome","trNew"].forEach(id => $(id).style.display = (id === which) ? "flex" : "none");
+}
+
+function openTrade(){
+  if(!AUTH.token){ openAccount(); return; }
+  trView("trHome");
+  $("tradeOverlay").classList.remove("hidden");
+  refreshTrades();
+}
+
+async function refreshTrades(){
+  const st = $("trStatus");
+  st.textContent = "LOADING…"; st.classList.remove("bad");
+  try{
+    const [pend, coll] = await Promise.all([api("/api/trade/pending"), api("/api/collection")]);
+    TR.coll = coll.collection;
+    renderTradeList($("trIncoming"), pend.incoming, true);
+    renderTradeList($("trOutgoing"), pend.outgoing, false);
+    st.textContent = "";
+  }catch(e){ st.textContent = e.message.toUpperCase(); st.classList.add("bad"); }
+}
+
+function renderTradeList(wrap, list, incoming){
+  wrap.innerHTML = "";
+  if(!list.length){
+    const d = document.createElement("div");
+    d.className = "trempty";
+    d.textContent = incoming ? "NO OFFERS WAITING" : "NONE OPEN";
+    wrap.appendChild(d);
+    return;
+  }
+  list.forEach(t => {
+    const row = document.createElement("div");
+    row.className = "trrow";
+    const get = cardByImg(incoming ? t.offerImg : t.wantImg);   // what YOU would gain
+    const give = cardByImg(incoming ? t.wantImg : t.offerImg);  // what YOU would give
+    row.appendChild(trMini(get));
+    const arrow = document.createElement("div");
+    arrow.className = "trarrow";
+    arrow.innerHTML = "&#8644;";
+    row.appendChild(arrow);
+    row.appendChild(trMini(give));
+    const who = document.createElement("div");
+    who.className = "trwho";
+    who.innerHTML = incoming
+      ? `<b>${t.from}</b> offers their <b>${get.name}</b> for your <b>${give.name}</b>`
+      : `you offered <b>${give.name}</b> to <b>${t.to}</b> for their <b>${get.name}</b>`;
+    row.appendChild(who);
+    const btns = document.createElement("div");
+    btns.className = "trbtns";
+    if(incoming){
+      const acc = document.createElement("button");
+      acc.className = "btn"; acc.textContent = "ACCEPT";
+      acc.addEventListener("click", () => respondTrade("/api/trade/accept", t.id));
+      const dec = document.createElement("button");
+      dec.className = "btn btn-red"; dec.textContent = "DECLINE";
+      dec.addEventListener("click", () => respondTrade("/api/trade/decline", t.id));
+      btns.appendChild(acc); btns.appendChild(dec);
+    } else {
+      const can = document.createElement("button");
+      can.className = "btn btn-red"; can.textContent = "CANCEL";
+      can.addEventListener("click", () => respondTrade("/api/trade/cancel", t.id));
+      btns.appendChild(can);
+    }
+    row.appendChild(btns);
+    wrap.appendChild(row);
+  });
+}
+
+async function respondTrade(path, id){
+  const st = $("trStatus");
+  st.textContent = "…"; st.classList.remove("bad");
+  try{
+    await api(path, { tradeId: id });
+    playFx(path.endsWith("accept") ? "snd-winhand.mp3" : "snd-cardflip.mp3");
+  }catch(e){ st.textContent = e.message.toUpperCase(); st.classList.add("bad"); }
+  refreshTrades();
+}
+
+function openProposeView(){
+  if(!TR.coll) TR.coll = {};   // clicked PROPOSE before the inbox finished loading
+  TR.offer = null; TR.want = null;
+  $("trNewStatus").textContent = ""; $("trNewStatus").classList.remove("bad");
+  const offerWrap = $("trOffer"), wantWrap = $("trWant");
+  offerWrap.innerHTML = ""; wantWrap.innerHTML = "";
+
+  const dupes = CARDS.filter(c => (TR.coll[c.img] || 0) > 1);
+  if(!dupes.length){
+    const d = document.createElement("div");
+    d.className = "trempty";
+    d.textContent = "NO DUPLICATES YET — WIN MORE TOP TRUMPS MATCHES";
+    offerWrap.appendChild(d);
+  }
+  dupes.forEach(c => {
+    const el = trMini(c, "×" + TR.coll[c.img]);
+    el.addEventListener("click", () => {
+      TR.offer = c.img;
+      [...offerWrap.children].forEach(x => x.classList.toggle("sel", x === el));
+    });
+    offerWrap.appendChild(el);
+  });
+  CARDS.forEach(c => {
+    const el = trMini(c);
+    el.addEventListener("click", () => {
+      TR.want = c.img;
+      [...wantWrap.children].forEach(x => x.classList.toggle("sel", x === el));
+    });
+    wantWrap.appendChild(el);
+  });
+  trView("trNew");
+}
+
+$("btnTrading").addEventListener("click", openTrade);
+$("btnTrPropose").addEventListener("click", openProposeView);
+$("btnTrBack").addEventListener("click", () => {
+  const home = $("trHome").style.display !== "none";
+  if(home){ $("tradeOverlay").classList.add("hidden"); }
+  else { trView("trHome"); refreshTrades(); }
+});
+$("btnTrSend").addEventListener("click", async () => {
+  const st = $("trNewStatus");
+  st.classList.remove("bad");
+  const to = $("trTo").value.trim();
+  if(!to){ st.textContent = "WHO'S IT FOR?"; st.classList.add("bad"); return; }
+  if(!TR.offer){ st.textContent = "PICK A DUPLICATE TO GIVE"; st.classList.add("bad"); return; }
+  if(!TR.want){ st.textContent = "PICK THE CARD YOU WANT"; st.classList.add("bad"); return; }
+  st.textContent = "SENDING…";
+  try{
+    await api("/api/trade/propose", { toUsername: to, offerImg: TR.offer, wantImg: TR.want });
+    playFx("snd-cardflip.mp3");
+    trView("trHome");
+    refreshTrades();
+  }catch(e){ st.textContent = e.message.toUpperCase(); st.classList.add("bad"); }
+});
+
+/* =========================================================
+   ONLINE PLAY
+   The match creator (host) runs the whole game with the
+   engine above — their options apply to both players. The
+   joiner (guest) is a mirror: it animates what the host
+   tells it and sends back stat picks. The Cloudflare worker
+   just relays messages between the two.
+   ========================================================= */
+/* served from the worker itself (workers.dev or totalbastardcards.com) both
+   hostnames hit the same deployment, so same-origin always works; the
+   hardcoded fallback is only for opening cctt.html straight off the disk */
+const ON_WORKER = location.protocol === "https:" || location.protocol === "http:";
+const WS_BASE  = ON_WORKER ? `wss://${location.host}/ws` : "wss://cctt.laroxbarbershop.workers.dev/ws";
+const API_BASE = ON_WORKER ? "" : "https://cctt.laroxbarbershop.workers.dev";
+const NET = {
+  ws:null, role:null, code:null,
+  live:false,          // true once both players are seated
+  pendingPick:null,    // guest pick that arrived before the host was ready (table & trumps)
+  battleHostPicks:null, battleGuestPicks:null, // battle mode: each side's 3 picks, resolved once both are in
+  ping:null,
+  chain:Promise.resolve(), // guest messages play out strictly in order
+};
+
+function codeGen(){
+  const A = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"; // no O/0/I/1 lookalikes
+  let s = "";
+  for(let i = 0; i < 4; i++) s += A[Math.floor(Math.random() * A.length)];
+  return s;
+}
+
+function netSend(o){
+  if(NET.ws && NET.ws.readyState === 1) NET.ws.send(JSON.stringify(o));
+}
+
+function netConnect(code, role){
+  netClose();
+  NET.role = role; NET.code = code;
+  const ws = new WebSocket(`${WS_BASE}?room=${code}&role=${role}`);
+  NET.ws = ws;
+  ws.onopen = () => { NET.ping = setInterval(() => netSend({t:"ping"}), 25000); };
+  ws.onmessage = (ev) => {
+    let m; try{ m = JSON.parse(ev.data); }catch{ return; }
+    if(m.t === "pong") return;
+    NET.chain = NET.chain.then(() => netHandle(m)).catch(e => console.error(e));
+  };
+  ws.onclose = () => { if(NET.live) netDropped(); };
+}
+
+function netClose(){
+  if(NET.ping){ clearInterval(NET.ping); NET.ping = null; }
+  if(NET.ws){ NET.ws.onclose = null; try{ NET.ws.close(); }catch{} NET.ws = null; }
+  NET.live = false; NET.pendingPick = null;
+}
+
+function netDropped(){
+  const wasOver = (G.state === "over");
+  netClose();
+  NET.role = null;
+  if(!wasOver){
+    G.state = "over";
+    $("endTitle").textContent = "OPPONENT LEFT";
+    $("endDetail").textContent = "THE CONNECTION WAS CLOSED";
+    $("onlineOverlay").classList.add("hidden");
+    $("modeSelectOverlay").classList.add("hidden");
+    $("endOverlay").classList.remove("hidden");
+  }
+}
+
+async function netHandle(m){
+  if(m.t === "err"){
+    if(NET.role === "host" && m.code === "code_taken"){
+      startHosting(); // vanishingly rare code clash — just roll a new code
+    } else if(NET.role === "guest"){
+      const msgs = {no_match:"NO MATCH WITH THAT CODE", seat_taken:"THAT MATCH ALREADY HAS TWO PLAYERS"};
+      const el = $("joinStatus");
+      el.textContent = msgs[m.code] || "COULD NOT JOIN";
+      el.classList.add("bad");
+      netClose(); NET.role = null;
+    }
+    return;
+  }
+  if(m.t === "peer_gone"){ netDropped(); return; }
+
+  if(NET.role === "host"){
+    if(m.t === "joined"){
+      NET.live = true;
+      netSend({t:"init", mode:G.mode, gametype:G.gametype});
+      $("onlineOverlay").classList.add("hidden");
+      $("modeSelectOverlay").classList.add("hidden");
+      $("startOverlay").classList.add("hidden");
+      startMatch();   // dispatches to newGame/newTrumpsGame/newBattleGame, same as solo play
+    } else if(m.t === "pick"){
+      if(!STATS.some(s => s.k === m.k)) return;
+      if(G.state === "choosing" && G.chooser === "o"){ resolveRound(m.k); }
+      else { NET.pendingPick = m.k; } // arrived while our animations were finishing
+    } else if(m.t === "trumpsPick"){
+      if(!STATS.some(s => s.k === m.k)) return;
+      if(G.state === "choosing" && G.chooser === "o"){ trumpsResolve(G.pHand[0], G.oHand[0], m.k); }
+      else { NET.pendingPick = m.k; }
+    } else if(m.t === "battlePicks"){
+      NET.battleGuestPicks = m.picks;
+      tryBattleResolveOnline();
+    }
+    return;
+  }
+
+  // ---- guest side ----
+  if(m.t === "init"){
+    NET.live = true;
+    G.gametype = m.gametype;
+    if(m.mode) G.mode = m.mode;   // the host's options rule the match on both phones
+    if(m.gametype === "trumps"){ guestTrumpsReset(); }
+    else if(m.gametype === "battle"){ guestBattleReset(); }
+    else { guestReset(); }
+  }
+  else if(m.t === "deal"){ await guestDeal(m); }
+  else if(m.t === "result"){ await guestResult(m); }
+  else if(m.t === "end"){ guestEnd(m); }
+  else if(m.t === "trumpsDeal"){ guestTrumpsDeal(m); }
+  else if(m.t === "trumpsResult"){ await guestTrumpsResult(m); }
+  else if(m.t === "trumpsEnd"){ guestTrumpsEnd(m); }
+  else if(m.t === "battleDeal"){ guestBattleDeal(m); }
+  else if(m.t === "battleResult"){ await guestBattleResolve(m); }
+  else if(m.t === "battleEnd"){ guestBattleEnd(m); }
+}
+
+/* ---------- guest mirror ---------- */
+function guestReset(){
+  G.pPile = []; G.oPile = []; G.pot = []; G.deck = [];
+  G.pCard = null; G.state = "idle";
+  $("playerPile").innerHTML = ""; $("oppPile").innerHTML = "";
+  $("playerSlot").innerHTML = ""; $("oppSlot").innerHTML = "";
+  setBanner(""); updateCounts();
+  $("startOverlay").classList.add("hidden");
+  $("onlineOverlay").classList.add("hidden");
+  $("modeSelectOverlay").classList.add("hidden");
+  $("endOverlay").classList.add("hidden");
+}
+
+async function guestDeal(m){
+  G.pCard = m.you; G.deck.length = m.deck; G.state = "dealing";
+  $("playerSlot").innerHTML = ""; $("oppSlot").innerHTML = "";
+
+  const deckR = $("deck").getBoundingClientRect();
+  const pSlotR = $("playerSlot").getBoundingClientRect();
+  const oSlotR = $("oppSlot").getBoundingClientRect();
+  const backHTML = `<div class="cardback" style="position:absolute;inset:0;border-radius:10px"></div>`;
+
+  $("deck").classList.add("drawing");
+  playFx("snd-cardflip.mp3");
+  await flyBetween(deckR, oSlotR, backHTML);
+  // we don't know the opponent's card yet — a stand-in sits face down
+  $("oppSlot").appendChild(buildCard({name:"?", hue:0, not:0, mon:0, str:0, int:0, fam:0}, true));
+
+  playFx("snd-cardflip.mp3");
+  await flyBetween(deckR, pSlotR, backHTML);
+  const pEl = buildCard(m.you, false);
+  pEl.classList.add("facedown");
+  $("playerSlot").appendChild(pEl);
+  pEl.getBoundingClientRect();
+  pEl.classList.remove("facedown");
+  $("deck").classList.remove("drawing");
+  updateCounts();
+
+  await wait(700);
+  G.state = "choosing";
+
+  if(m.chooser === "guest"){
+    setBanner("YOUR TURN");
+    pEl.classList.add("pickable");
+    pEl.querySelectorAll(".stat").forEach(s => {
+      s.addEventListener("click", () => {
+        if(G.state !== "choosing") return;
+        G.state = "waiting";
+        pEl.classList.remove("pickable");
+        s.classList.add("chosen");
+        netSend({t:"pick", k:s.dataset.k});
+      });
+    });
+  } else {
+    setBanner("OPPONENT'S TURN", true);
+  }
+}
+
+async function guestResult(m){
+  G.state = "revealing";
+  const pEl = $("playerSlot").querySelector(".card");
+  let oEl = $("oppSlot").querySelector(".card");
+  if(!pEl || !oEl) return;
+  pEl.classList.remove("pickable");
+
+  setBanner(STATS.find(s => s.k === m.k).label);
+  pEl.querySelector(`.stat[data-k="${m.k}"]`).classList.add("chosen");
+
+  // swap the stand-in for the real opponent card, still face down
+  const real = buildCard(m.opp, true);
+  $("oppSlot").replaceChild(real, oEl);
+  oEl = real;
+
+  await wait(750);
+  playFx("snd-cardflip.mp3");
+  oEl.classList.remove("facedown");
+  await wait(700);
+  oEl.querySelector(`.stat[data-k="${m.k}"]`).classList.add("chosen");
+  await wait(650);
+
+  const wonCards = [G.pCard, m.opp, ...G.pot];
+  G.pot = [];
+  G.deck.length = m.deck;
+
+  if(m.winner === "tie"){
+    G.pot = wonCards;
+    setBanner("TIE — CARDS GO TO THE POT", true);
+    await wait(2600);
+    await sweepTo(pEl, oEl, $("pot"), null);
+    updateCounts();
+    return;
+  }
+
+  const iWon = (m.winner === "guest");
+  const winEl = iWon ? pEl : oEl;
+  const loseEl = iWon ? oEl : pEl;
+  winEl.classList.add("roundwin");
+  winEl.querySelector(`.stat[data-k="${m.k}"]`).classList.add("winstat");
+  loseEl.classList.add("roundlose");
+  playFx(iWon ? "snd-winhand.mp3" : "snd-losehand.mp3");
+  setBanner(iWon ? "YOU TAKE THE ROUND" : "OPPONENT TAKES THE ROUND", !iWon);
+  await wait(2800);
+
+  if(iWon){ G.pPile.push(...wonCards); } else { G.oPile.push(...wonCards); }
+  await sweepTo(pEl, oEl, iWon ? $("playerPile") : $("oppPile"), wonCards);
+  updateCounts();
+}
+
+function guestEnd(m){
+  G.state = "over";
+  resetEndReward();
+  const t = $("endTitle"), d = $("endDetail");
+  if(m.guest > m.host){ t.textContent = "YOU WIN THE TABLE"; playFx("snd-victory.mp3"); }
+  else if(m.host > m.guest){ t.textContent = "OPPONENT WINS"; playFx("snd-loser.mp3"); }
+  else { t.textContent = "DEAD EVEN"; }
+  d.textContent = `YOU ${m.guest} — ${m.host} OPPONENT`;
+  $("endOverlay").classList.remove("hidden");
+}
+
+/* ---------- guest mirror: TOP TRUMPS ---------- */
+function guestTrumpsReset(){
+  // the host always goes first in a fresh match (same fixed convention as Table mode)
+  G.pot = []; G.handIdx = 0; G.chooser = "o"; G.state = "idle";
+  $("table").classList.add("trumps");
+  $("playerSlot").innerHTML = ""; $("oppSlot").innerHTML = "";
+  $("playerPile").innerHTML = ""; $("oppPile").innerHTML = "";
+  setBanner(""); updateTrumpsCounts();
+  $("startOverlay").classList.add("hidden");
+  $("onlineOverlay").classList.add("hidden");
+  $("modeSelectOverlay").classList.add("hidden");
+  $("endOverlay").classList.add("hidden");
+}
+
+function guestTrumpsDeal(m){
+  G.pHand = m.yourHand;
+  G.oHand = new Array(m.oppCount).fill(null); // the opponent's actual cards stay secret until revealed
+  updateTrumpsCounts();
+  guestTrumpsTurn();
+}
+
+const BLANK_CARD = {name:"?", hue:0, not:0, mon:0, str:0, int:0, fam:0};
+
+function guestTrumpsTurn(){
+  if(G.pHand.length === 0 || G.oHand.length === 0) return; // trumpsEnd arrives via "trumpsEnd"
+  G.state = "choosing";
+  $("playerSlot").innerHTML = ""; $("oppSlot").innerHTML = "";
+  const pTop = G.pHand[0];
+
+  if(G.chooser === "p"){
+    $("oppSlot").appendChild(buildCard(BLANK_CARD, true));
+    const el = buildCard(pTop, false);
+    el.classList.add("pickable");
+    el.querySelectorAll(".stat").forEach(s => {
+      s.addEventListener("click", () => {
+        if(G.state !== "choosing" || G.chooser !== "p") return;
+        G.state = "waiting";
+        el.classList.remove("pickable");
+        s.classList.add("chosen");
+        netSend({t:"trumpsPick", k:s.dataset.k});
+      });
+    });
+    $("playerSlot").appendChild(el);
+    setBanner("YOUR TURN");
+  } else {
+    $("playerSlot").appendChild(buildCard(pTop, false));
+    $("oppSlot").appendChild(buildCard(BLANK_CARD, true));
+    setBanner("OPPONENT'S TURN", true);
+  }
+}
+
+async function guestTrumpsResult(m){
+  G.state = "revealing";
+  const pEl = $("playerSlot").querySelector(".card");
+  let oEl = $("oppSlot").querySelector(".card");
+  if(!pEl || !oEl) return;
+  pEl.classList.remove("pickable");
+  const myCard = G.pHand[0];
+
+  setBanner(STATS.find(s => s.k === m.k).label);
+  pEl.querySelector(`.stat[data-k="${m.k}"]`).classList.add("chosen");
+
+  // swap the stand-in for the real host card, still face down
+  const real = buildCard(m.hostCard, true);
+  $("oppSlot").replaceChild(real, oEl);
+  oEl = real;
+
+  await wait(750);
+  playFx("snd-cardflip.mp3");
+  oEl.classList.remove("facedown");
+  await wait(700);
+  oEl.querySelector(`.stat[data-k="${m.k}"]`).classList.add("chosen");
+  await wait(650);
+
+  removeCard(G.pHand, myCard);
+  G.oHand.pop(); // shrink the opponent's tracked hand length by one
+  const wonCards = [myCard, m.hostCard, ...G.pot];
+  G.pot = [];
+
+  if(m.winner === "tie"){
+    G.pot = wonCards;
+    G.chooser = (m.next === "guest") ? "p" : "o";   // the host decides turn order, never local options
+    setBanner("TIE — CARDS GO TO THE POT", true);
+    await wait(2600);
+    await sweepTo(pEl, oEl, $("pot"), null);
+    updateTrumpsCounts();
+    await wait(400);
+    guestTrumpsTurn();
+    return;
+  }
+
+  const iWon = (m.winner === "guest");
+  const winEl = iWon ? pEl : oEl;
+  const loseEl = iWon ? oEl : pEl;
+  winEl.classList.add("roundwin");
+  winEl.querySelector(`.stat[data-k="${m.k}"]`).classList.add("winstat");
+  loseEl.classList.add("roundlose");
+  playFx(iWon ? "snd-winhand.mp3" : "snd-losehand.mp3");
+  setBanner(iWon ? "YOU TAKE THE CARDS" : "OPPONENT TAKES THE CARDS", !iWon);
+  await wait(2800);
+
+  if(iWon){ G.pHand.push(...wonCards); }
+  else { for(let i = 0; i < wonCards.length; i++) G.oHand.push(null); }
+  G.chooser = (m.next === "guest") ? "p" : "o";     // the host decides turn order, never local options
+
+  await sweepTo(pEl, oEl, iWon ? $("playerScore") : $("oppScore"), null);
+  updateTrumpsCounts();
+  await wait(450);
+  guestTrumpsTurn();
+}
+
+function guestTrumpsEnd(m){
+  G.state = "over";
+  resetEndReward();
+  const t = $("endTitle"), d = $("endDetail");
+  if(m.guest > m.host){
+    t.textContent = "YOU WIN THE PACK"; playFx("snd-victory.mp3");
+    rollTrumpsReward();   // guest rolls its own reward locally — never told by the host
+  }
+  else if(m.host > m.guest){ t.textContent = "OPPONENT WINS"; playFx("snd-loser.mp3"); }
+  else { t.textContent = "DEAD EVEN"; }
+  d.textContent = `YOU ${m.guest} — ${m.host} OPPONENT`;
+  $("endOverlay").classList.remove("hidden");
+}
+
+/* ---------- guest mirror: BATTLE ---------- */
+function guestBattleReset(){
+  G.pWins = 0; G.oWins = 0; G.battleRound = 0; G.pPicks = [];
+  G.state = "idle";
+  $("table").classList.add("battle");
+  setBanner("");
+  $("startOverlay").classList.add("hidden");
+  $("onlineOverlay").classList.add("hidden");
+  $("modeSelectOverlay").classList.add("hidden");
+  $("endOverlay").classList.add("hidden");
+}
+
+function guestBattleDeal(m){
+  G.pHand = m.yourHand;
+  G.oHand = new Array(m.oppCount).fill(null);
+  updateBattle();
+  battlePickPhase();       // the same local pick-3 UI used for CPU play — it only touches your own hand
+}
+
+async function guestBattleResolve(m){
+  $("battlePick").style.display = "none";
+  G.oHand.splice(0, 3);    // opponent's tracked hand shrinks by their 3 committed cards
+  await battleIntroParade(m.guest, m.host);
+  const winnerSide = (m.winner === "guest") ? "you" : (m.winner === "host" ? "opp" : "tie");
+  await battleResolveVisual(m.guest, m.host, m.key, winnerSide);
+}
+
+function guestBattleEnd(m){
+  G.state = "over";
+  resetEndReward();
+  const t = $("endTitle"), d = $("endDetail");
+  if(m.guest > m.host){ t.textContent = "YOU WIN THE WAR"; playFx("snd-victory.mp3"); }
+  else if(m.host > m.guest){ t.textContent = "OPPONENT WINS"; playFx("snd-loser.mp3"); }
+  else { t.textContent = "DEAD EVEN"; }
+  d.textContent = `BATTLES  YOU ${m.guest} — ${m.host} OPPONENT`;
+  $("endOverlay").classList.remove("hidden");
+}
+
+/* ---------- online popup ---------- */
+function netView(which){
+  ["netHome","netCreate","netJoin"].forEach(id =>
+    $(id).style.display = (id === which) ? "flex" : "none");
+}
+
+function startHosting(){
+  const code = codeGen();
+  $("roomCode").textContent = code;
+  $("createStatus").textContent = "WAITING FOR OPPONENT…";
+  $("createStatus").classList.remove("bad");
+  netConnect(code, "host");
+}
+
+$("btnCreate").addEventListener("click", () => {
+  netView("netCreate");
+  startHosting();
+});
+$("btnJoinView").addEventListener("click", () => {
+  netView("netJoin");
+  $("joinStatus").textContent = "";
+  $("joinStatus").classList.remove("bad");
+  $("joinCode").value = "";
+  $("joinCode").focus();
+});
+$("btnJoinGo").addEventListener("click", () => {
+  const code = $("joinCode").value.trim().toUpperCase();
+  if(!/^[A-Z2-9]{4}$/.test(code)){
+    $("joinStatus").textContent = "CODES ARE 4 LETTERS OR NUMBERS";
+    $("joinStatus").classList.add("bad");
+    return;
+  }
+  $("joinStatus").textContent = "CONNECTING…";
+  $("joinStatus").classList.remove("bad");
+  netConnect(code, "guest");
+});
+$("joinCode").addEventListener("keydown", e => {
+  if(e.key === "Enter") $("btnJoinGo").click();
+});
+$("btnOnlineBack").addEventListener("click", () => {
+  netClose(); NET.role = null;
+  $("onlineOverlay").classList.add("hidden");
+});
+
+/* ---------- options popup ---------- */
+function renderMode(){
+  document.querySelectorAll(".opt[data-mode]").forEach(o =>
+    o.classList.toggle("sel", o.dataset.mode === G.mode));
+  $("optMusic").classList.toggle("sel", SND.music);
+  $("optFx").classList.toggle("sel", SND.fx);
+}
+document.querySelectorAll(".opt[data-mode]").forEach(o => {
+  o.addEventListener("click", () => {
+    const changed = (G.mode !== o.dataset.mode);
+    G.mode = o.dataset.mode;
+    localStorage.setItem("cctt_mode", G.mode);
+    renderMode();
+    if(changed) requestModeRestart(); // deal a fresh round under the new rule
+  });
+});
+$("optMusic").addEventListener("click", () => {
+  SND.music = !SND.music;
+  localStorage.setItem("cctt_music", SND.music ? "on" : "off");
+  applyMusic();
+  renderMode();
+});
+$("optFx").addEventListener("click", () => {
+  SND.fx = !SND.fx;
+  localStorage.setItem("cctt_fx", SND.fx ? "on" : "off");
+  renderMode();
+});
+function openOptions(){
+  renderMode();
+  // the take-turns choice only exists in The Table — Trumps is always
+  // winner-stays-on and Battle has no turns at all
+  const isTable = G.gametype === "table";
+  document.querySelectorAll("#modeRow .opt").forEach(o => o.classList.toggle("disabled", !isTable));
+  $("modeLabel").textContent = isTable
+    ? "WHO PICKS THE ATTRIBUTE"
+    : "WHO PICKS THE ATTRIBUTE — THE TABLE ONLY";
+  // exit button only makes sense while a match is on the table
+  const inMatch = $("startOverlay").classList.contains("hidden")
+               && $("endOverlay").classList.contains("hidden")
+               && G.state !== "over";
+  $("btnExitGame").style.display = inMatch ? "" : "none";
+  $("optionsOverlay").classList.remove("hidden");
+}
+
+function exitToMenu(){
+  netClose(); NET.role = null;   // online: closing the line tells the opponent
+  G.state = "over";
+  G.modeRestartPending = false;
+  G.pPile = []; G.oPile = []; G.pot = []; G.deck = [];
+  G.pCard = null; G.oCard = null;
+  G.pHand = []; G.oHand = []; G.pPicks = [];
+  $("table").classList.remove("trumps", "battle");
+  $("playerSlot").innerHTML = ""; $("oppSlot").innerHTML = "";
+  $("playerPile").innerHTML = ""; $("oppPile").innerHTML = "";
+  setBanner(""); updateCounts();
+  $("confirmOverlay").classList.add("hidden");
+  $("optionsOverlay").classList.add("hidden");
+  $("endOverlay").classList.add("hidden");
+  $("modeSelectOverlay").classList.add("hidden");
+  $("startOverlay").classList.remove("hidden");
+}
+$("btnExitGame").addEventListener("click", () => {
+  $("confirmOverlay").classList.remove("hidden");
+});
+$("btnConfirmExit").addEventListener("click", exitToMenu);
+$("btnCancelExit").addEventListener("click", () => {
+  $("confirmOverlay").classList.add("hidden");
+});
+$("btnOptions").addEventListener("click", openOptions);
+$("btnOptionsStart").addEventListener("click", openOptions);
+$("btnOptDone").addEventListener("click", () => {
+  $("optionsOverlay").classList.add("hidden");
+});
+
+/* ---------- card gallery ---------- */
+let galIdx = 0;
+let galColl = null;   // {img: count} when logged in and loaded, else null = plain browse
+function showGalleryCard(i){
+  galIdx = (i + CARDS.length) % CARDS.length;
+  const card = CARDS[galIdx];
+  const el = buildCard(card, false);   // face up, not pickable — inspect only
+  const stage = $("galleryCard");
+  stage.innerHTML = "";
+  stage.appendChild(el);
+  stage.classList.remove("uncollected");
+  // logged in: the gallery doubles as your album — owned counts and greyed-out gaps
+  if(galColl){
+    const n = galColl[card.img] || 0;
+    if(n === 0){
+      stage.classList.add("uncollected");
+      const cap = document.createElement("div");
+      cap.className = "galuncoll";
+      cap.textContent = "NOT YET COLLECTED";
+      stage.appendChild(cap);
+    } else {
+      const badge = document.createElement("div");
+      badge.className = "galcount";
+      badge.textContent = "×" + n;
+      stage.appendChild(badge);
+    }
+  }
+  $("galleryPos").textContent = (galIdx + 1) + " / " + CARDS.length;
+}
+function galStep(d){ showGalleryCard(galIdx + d); }
+async function openGallery(){
+  galColl = null;
+  $("galColl").textContent = "";
+  showGalleryCard(0);
+  $("galleryOverlay").classList.remove("hidden");
+  if(!AUTH.token){
+    $("galColl").textContent = "LOG IN TO COLLECT CARDS";
+    return;
+  }
+  try{
+    const d = await api("/api/collection");
+    galColl = d.collection;
+    const owned = CARDS.filter(c => (galColl[c.img] || 0) > 0).length;
+    $("galColl").textContent = `${owned} / ${CARDS.length} COLLECTED`;
+    showGalleryCard(galIdx);   // re-render the current card with its badge
+  }catch(e){ /* offline or expired session — plain browse still works */ }
+}
+$("btnGallery").addEventListener("click", openGallery);
+$("btnAbout").addEventListener("click", () => $("aboutOverlay").classList.remove("hidden"));
+$("btnAboutClose").addEventListener("click", () => $("aboutOverlay").classList.add("hidden"));
+$("btnBattleGo").addEventListener("click", startBattle);
+$("galPrev").addEventListener("click", () => galStep(-1));
+$("galNext").addEventListener("click", () => galStep(1));
+$("galClose").addEventListener("click", () => $("galleryOverlay").classList.add("hidden"));
+// swipe left/right on the card
+(function(){
+  let gx = null;
+  const stage = $("galleryCard");
+  stage.addEventListener("pointerdown", e => { gx = e.clientX; });
+  stage.addEventListener("pointerup", e => {
+    if(gx === null) return;
+    const dx = e.clientX - gx; gx = null;
+    if(Math.abs(dx) > 40) galStep(dx < 0 ? 1 : -1);
+  });
+})();
+// arrow keys / escape while the gallery is open
+document.addEventListener("keydown", e => {
+  if($("galleryOverlay").classList.contains("hidden")) return;
+  if(e.key === "ArrowLeft") galStep(-1);
+  else if(e.key === "ArrowRight") galStep(1);
+  else if(e.key === "Escape") $("galleryOverlay").classList.add("hidden");
+});
+
+/* ---------- main menu: PvP / CPU -> choose game type ---------- */
+function openModeSelect(context){
+  G.modeSelectContext = context; // "cpu" | "pvp"
+  $("modeSelectTitle").textContent = (context === "pvp") ? "PVP — CHOOSE GAME TYPE" : "CPU — CHOOSE GAME TYPE";
+  document.querySelectorAll("#modeSelectOverlay .opt[data-type]").forEach(o => {
+    o.querySelector(".optdesc").textContent = o.dataset.desc;
+  });
+  $("modeSelectOverlay").classList.remove("hidden");
+}
+$("btnPvP").addEventListener("click", () => openModeSelect("pvp"));
+$("btnCPU").addEventListener("click", () => openModeSelect("cpu"));
+$("btnModeSelectBack").addEventListener("click", () => {
+  $("modeSelectOverlay").classList.add("hidden");
+});
+document.querySelectorAll("#modeSelectOverlay .opt[data-type]").forEach(o => {
+  o.addEventListener("click", () => {
+    G.gametype = o.dataset.type;
+    localStorage.setItem("cctt_gametype", G.gametype);
+    if(G.modeSelectContext === "pvp"){
+      // stays open underneath — BACK from the online screen returns here
+      netView("netHome");
+      $("onlineOverlay").classList.remove("hidden");
+    } else {
+      $("modeSelectOverlay").classList.add("hidden");
+      $("startOverlay").classList.add("hidden");
+      startMatch();
+    }
+  });
+});
+
+$("btnAgain").addEventListener("click", () => {
+  $("endOverlay").classList.add("hidden");
+  if(NET.role){
+    // an online match just ended — back to the start screen
+    netClose(); NET.role = null;
+    $("modeSelectOverlay").classList.add("hidden");
+    $("startOverlay").classList.remove("hidden");
+  } else {
+    startMatch();
+  }
+});
+
+updateCounts();
+
+/* preload + decode every image before play so nothing "pops" mid-animation.
+   Background images (the card back) don't fetch until first painted, so we
+   warm them here — the back first since it's used in every deal/flip. */
+(function preloadImages(){
+  const urls = ["pic-card.png", ...CARDS.map(c => c.img).filter(Boolean)];
+  urls.forEach(u => {
+    const img = new Image();
+    img.src = u;
+    if(img.decode) img.decode().catch(() => {});
+  });
+})();
+
+/* main menu background slideshow — each image holds for 7s, then crossfades */
+(function startMenuBG(){
+  const slides = document.querySelectorAll("#startBG .bgslide");
+  if(!slides.length) return;
+  let idx = 0;
+  slides[0].classList.add("show");
+  setInterval(() => {
+    slides[idx].classList.remove("show");
+    idx = (idx + 1) % slides.length;
+    slides[idx].classList.add("show");
+  }, 7000);
+})();
+</script>
+</body>
+</html>
