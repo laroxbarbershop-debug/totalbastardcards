@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>La Mar Shish Takeaway</title>
+<link rel="stylesheet" href="assets/fonts/fonts.css">
+<style>
+  /* A4 landscape sheet, folded to A5. 3mm bleed all round. */
+  @page { size: 303mm 216mm; margin: 0; }
+  :root {
+    --bg: #231F20;
+    --gold: #E4B54E;
+    --gold-hi: #F7DC86;
+    --gold-lo: #B8862C;
+    --ink: #F4EFE6;
+    --muted: #D9D1C3;
+    --bleed: 3mm;
+    --panel-w: 148.5mm;
+    --panel-h: 210mm;
+    --photo-opacity: .55;   /* strength of the photo behind the inside pages */
+    --desc: 6.9pt;
+    --name: 7.9pt;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: #555; }
+  body { font-family: 'Oswald', sans-serif; color: var(--ink); -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+  .sheet {
+    position: relative; width: 303mm; height: 216mm; overflow: hidden;
+    background: var(--bg); page-break-after: always; break-after: page;
+    margin: 0 auto 10mm;
+  }
+  .sheet:last-child { page-break-after: auto; break-after: auto; }
+  @media print { .sheet { margin: 0; } html, body { background: none; } }
+
+  .panel {
+    position: absolute; top: var(--bleed); width: var(--panel-w); height: var(--panel-h);
+    padding: 8mm 8.5mm 7mm;
+  }
+  .panel.left  { left: var(--bleed); }
+  .panel.right { left: calc(var(--bleed) + var(--panel-w)); }
+
+  /* ---------- decoration ---------- */
+  .swirl { position: absolute; mix-blend-mode: lighten; pointer-events: none; }
+  .photo {
+    position: absolute; inset: 0;
+    background: url(assets/lamb-chops.jpg) center 60% / cover no-repeat;
+    opacity: var(--photo-opacity);
+  }
+  .photo-shade {
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse 60% 70% at 50% 62%, rgba(35,31,32,0) 0%, rgba(35,31,32,.55) 70%, rgba(35,31,32,.9) 100%),
+      linear-gradient(rgba(35,31,32,.55), rgba(35,31,32,.15) 35%, rgba(35,31,32,.35));
+  }
+
+  /* ---------- menu typography ---------- */
+  .cols { column-count: 2; column-gap: 6mm; column-fill: balance; }
+  .section { break-inside: auto; margin-bottom: 3.6mm; }
+  .section.keep { break-inside: avoid; }
+  h2 {
+    font-family: 'Playfair Display', serif; font-weight: 700;
+    font-size: 14.5pt; line-height: 1; letter-spacing: .02em; text-transform: uppercase;
+    color: var(--ink); text-align: center;
+    padding-bottom: 1.6mm; margin-bottom: 1.8mm;
+    border-bottom: .5mm solid var(--gold);
+    break-after: avoid;
+  }
+  .served {
+    display: block; text-align: center;
+    background: linear-gradient(90deg, var(--gold-lo), var(--gold-hi) 50%, var(--gold-lo));
+    color: #1d1a1b; font-weight: 500; font-size: 6.3pt; letter-spacing: .06em; text-transform: uppercase;
+    padding: .55mm 1mm .45mm; margin: -.6mm 0 2mm;
+    break-after: avoid;
+  }
+  h2:has(+ .served) { border-bottom: none; margin-bottom: 1.4mm; }
+  .item { break-inside: avoid; margin-bottom: 1.55mm; }
+  .item .top { display: flex; align-items: baseline; gap: 1.5mm; }
+  .item .name {
+    font-weight: 500; font-size: var(--name); letter-spacing: .03em; text-transform: uppercase; line-height: 1.15;
+    flex: 1;
+  }
+  .tag { color: var(--gold); font-weight: 400; letter-spacing: .02em; }
+  .sig { color: var(--gold); font-weight: 400; font-size: .85em; white-space: nowrap; }
+  .price { font-weight: 500; font-size: var(--name); white-space: nowrap; }
+  .desc { font-weight: 300; font-size: var(--desc); line-height: 1.22; color: var(--muted); margin-top: .2mm; padding-right: 4mm; }
+
+  .special {
+    border: .35mm solid var(--gold); padding: 1.8mm 2mm 1.4mm; margin: 2mm 0 1mm;
+    background: rgba(35,31,32,.55);
+  }
+  .special .desc { padding-right: 0; }
+
+  .list { display: grid; grid-template-columns: 1fr auto; column-gap: 2mm; row-gap: .9mm; }
+  .list.two { grid-template-columns: 1fr auto 1fr auto; column-gap: 2.2mm; }
+  .list span { font-weight: 500; font-size: var(--name); text-transform: uppercase; letter-spacing: .03em; }
+  .list span.p { text-align: right; }
+
+  .platter {
+    border: .35mm solid var(--gold); text-align: center; padding: 2mm 2.4mm 2.2mm;
+    break-inside: avoid; margin-bottom: 3mm; background: rgba(35,31,32,.6);
+  }
+  .platter h3 { font-weight: 500; font-size: 10pt; letter-spacing: .05em; color: var(--gold); text-transform: uppercase; line-height: 1.1; }
+  .platter .min { font-weight: 300; font-size: 7pt; color: var(--gold); letter-spacing: .08em; margin-bottom: 1.2mm; }
+  .platter h4 { font-weight: 500; font-size: 7.4pt; letter-spacing: .04em; text-transform: uppercase; margin-top: 1mm; }
+  .platter p { font-weight: 300; font-size: 6.6pt; line-height: 1.22; color: var(--muted); }
+  .platter .pp {
+    display: inline-block; margin-top: 1.4mm; border: .35mm solid var(--gold);
+    font-weight: 500; font-size: 10pt; padding: .3mm 4mm;
+  }
+
+  /* ---------- back page ---------- */
+  .platters { display: grid; grid-template-columns: 1fr 1fr; gap: 6mm; margin-top: 2.5mm; }
+  .platters .platter { margin: 0; }
+  .strip-logo { width: 21mm; mix-blend-mode: lighten; flex: none; }
+  .order-strip {
+    position: absolute; left: 8.5mm; right: 8.5mm; bottom: 7mm;
+    border-top: .35mm solid var(--gold); padding-top: 2mm; text-align: center;
+    display: flex; align-items: center; gap: 4mm;
+  }
+  .strip-text { flex: 1; }
+  .order-strip .call { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 12pt; letter-spacing: .04em; }
+  .order-strip .call b { color: var(--gold); }
+  .order-strip .meta { font-weight: 400; font-size: 6.8pt; letter-spacing: .1em; color: var(--muted); margin-top: .6mm; text-transform: uppercase; }
+  .order-strip .key { font-weight: 300; font-size: 5.9pt; color: var(--muted); margin-top: 1.4mm; line-height: 1.3; }
+  .order-strip .key b { color: var(--gold); font-weight: 500; }
+
+  /* ---------- front cover ---------- */
+  /* cover-print.png already includes the 3mm bleed on top, bottom and outer edge */
+  .cover-art {
+    position: absolute; top: 0; left: calc(var(--bleed) + var(--panel-w));
+    width: calc(var(--panel-w) + var(--bleed)); height: 216mm;
+  }
+  .cover {
+    position: absolute; top: var(--bleed); left: calc(var(--bleed) + var(--panel-w));
+    width: var(--panel-w); height: var(--panel-h);
+  }
+  .cover .title { position: absolute; left: 0; top: 134.5mm; width: 100%; height: 14mm; overflow: visible; }
+  .cover .title text { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 29pt; letter-spacing: .01em; }
+  .cover .sub {
+    position: absolute; left: 0; right: 0; top: 152mm; text-align: center;
+    font-weight: 400; font-size: 9pt; letter-spacing: .32em; text-transform: uppercase; color: var(--ink);
+  }
+  .cover .sub b { color: var(--gold); font-weight: 500; letter-spacing: .12em; }
+</style>
+</head>
+<body>
+
+<!-- ===================== OUTSIDE: back (left) | front cover (right) ===================== -->
+<section class="sheet" id="outside">
+  <img class="swirl" src="assets/swirl-bl.png" style="left:0; bottom:0; width:46mm; opacity:.85">
+  <img class="cover-art" src="assets/cover-print.png" alt="">
+
+  <div class="panel left" id="p4">
+    <div class="cols" data-flow></div>
+    <div class="platters"></div>
+    <div class="order-strip">
+      <div class="strip-text">
+      <div class="call">CALL TO ORDER &nbsp;<b>0170 284 4214</b></div>
+      <div class="meta">www.lamarshish.com &nbsp;·&nbsp; @Lamarshish &nbsp;·&nbsp; La Mar Shish</div>
+      <div class="key">
+        <b>V</b> Vegetarian &nbsp; <b>VG</b> Vegan &nbsp; <b>GF</b> Gluten free &nbsp; <b>G</b> Contains gluten &nbsp; <b>D</b> Contains dairy &nbsp; <b>N</b> Contains nuts<br>
+        Please tell us about any allergies or dietary requirements when ordering.
+      </div>
+      </div>
+      <img class="strip-logo" src="assets/logo-box.png" alt="La Mar Shish">
+    </div>
+  </div>
+
+  <div class="cover">
+    <svg class="title" viewBox="0 0 561 53" preserveAspectRatio="xMidYMid meet">
+      <defs><linearGradient id="gold" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#FBE7A1"/><stop offset=".45" stop-color="#E9BF55"/>
+        <stop offset=".7" stop-color="#C08F2E"/><stop offset="1" stop-color="#F2D27A"/>
+      </linearGradient></defs>
+      <text x="280.5" y="42" text-anchor="middle" fill="url(#gold)">TAKEAWAY MENU</text>
+    </svg>
+    <div class="sub">Call to order &nbsp;<b>0170 284 4214</b></div>
+  </div>
+</section>
+
+<!-- ===================== INSIDE: page 2 (left) | page 3 (right) ===================== -->
+<section class="sheet" id="inside">
+  <div class="photo"></div>
+  <div class="photo-shade"></div>
+  <img class="swirl" src="assets/swirl-l.png"  style="left:0; top:0; width:10.5mm; opacity:.75">
+  <img class="swirl" src="assets/swirl-tr.png" style="right:0; top:0; width:10.5mm; opacity:.75">
+
+  <div class="panel left"  id="p2"><div class="cols" data-flow></div></div>
+  <div class="panel right" id="p3"><div class="cols" data-flow></div></div>
+</section>
+
+<script>
+const menu = {
+  p2: [
+    { title: 'Cold Appetisers', items: [
+      ['Mixed Olives', 'V/VG', '4.50', 'Combination of marinated black and green olives.'],
+      ['Humous', 'V/N', '5.95', 'Creamy chickpeas, sesame oil, garlic & lemon juice.'],
+      ['Tarama', 'G', '5.95', 'Cod roe paste with olive oil & lemon juice.'],
+      ['Cacik (Tzatziki)', 'V/D', '5.95', 'Finely chopped cucumber, dried mint & a hint of garlic in a creamy yogurt sauce.'],
+      ['Babaganoush', 'V', '5.95', 'Grilled aubergine, garlic & tahini in a creamy yogurt sauce.'],
+      ['Yaprak Sarma', 'V', '5.50', 'Stuffed vine leaves with rice & pine kernels.'],
+      ['Saksuka', 'V/VG/GF', '5.95', 'Pan fried aubergine, mixed peppers, onions, garlic & courgette with tomato sauce.'],
+      ['Feta Cheese', 'V/D/N/GF', '4.95', 'Turkish feta cheese served with tomato & cucumber.'],
+      ['Beetroot Tarator', 'V/D', '6.50', 'Roasted beetroot, hung yogurt, garlic, dill & walnuts.'],
+      ['Prawn Avocado Cocktail', 'D/G', '7.95', 'Marinated fresh king prawns, avocado, lettuce & homemade cocktail sauce.', true],
+      ['Mixed Cold Appetisers', '', '16.95', 'Selection of humous, tarama, cacik, saksuka, babaganoush & beetroot tarator.'],
+    ]},
+    { title: 'Hot Appetisers', items: [
+      ['Grilled Sucuk', 'GF', '6.95', 'Grilled spicy Turkish beef sausage served with garnish.'],
+      ['Grilled Halloumi', 'D/GF/V', '6.95', 'Grilled Cypriot cheese served with garnish.'],
+      ['Sigara Boregi', 'D/G/V', '7.50', 'Rolled pastry filled with feta cheese & spinach, served with sweet chilli sauce.'],
+      ['Falafel', 'V/N/G', '5.95', 'Chickpea, broad bean & vegetable fritters served with humous.'],
+      ['Chicken Livers', 'GF', '7.50', 'Freshly diced pan fried chicken liver with herbs, served with red onion & parsley.'],
+      ['Humous Kavurma', 'N/GF', '7.50', 'Humous topped with sautéed lamb & herbs.'],
+      ['Mititi Kofte', 'GF', '8.00', 'Oven baked lamb meatballs in slow roasted tomato sauce.'],
+      ['Creamy Garlic Mushrooms', 'D/GF', '7.95', 'Sliced mushrooms gently cooked with garlic, double cream, herbs & Parmesan cheese.'],
+      ['Crispy Calamari', 'G/D', '7.95', 'Breaded squid rings served with tartare sauce.'],
+      ['Whitebait', 'G/D', '7.50', 'Fried whole crispy whitebait served with fresh lemon & tartare sauce.'],
+      ['Pan Fried Prawns', 'spicy available', '8.50', 'Sautéed in butter, garlic, special tomato sauce & white wine.', true],
+      ['Scallops', 'G', '9.50', 'Freshly marinated scallops with garlic, butter, lemon & parsley, cooked in white wine.', true],
+      ['Grilled Octopus', 'V/GF', '9.95', 'Marinated grilled octopus with garlic & herbs, served with garnish.', true],
+      ['Mixed Hot Appetisers', '', '17.95', 'Selection of sucuk, halloumi, sigara boregi, calamari, mititi kofte & falafel.'],
+    ]},
+    { title: 'Side Orders', keep: true, list: [
+      ['Chips','4.00'],['Rice','3.00'],['Bulgur','3.00'],['Onion Rings','5.00'],['Mash Potato','5.00'],
+      ['Grilled Asparagus','5.00'],['Veggie Sticks','3.00'],['Garlic Bread','4.00'],['Turkish Bread','2.00'],['Yogurt','3.00'],
+    ]},
+    { title: 'Salads', keep: true, list: [
+      ['Chicken Caesar Salad','13.95'],['Grilled Salmon Salad','14.95'],['Tuna Salad','12.95'],['Greek Salad','12.00'],['Ezme Salad','7.00'],
+    ]},
+  ],
+  p3: [
+    { title: 'Over Charcoal', served: 'All dishes served with mixed rice and salad', items: [
+      ['Chicken Shish', 'D/G', '17.95', 'Tender marinated cubes of chicken breast on a skewer, grilled over charcoal.'],
+      ['Lamb Shish', 'D/G', '19.95', 'Prime marinated cubes of lamb on skewers, grilled over charcoal.'],
+      ['Adana Kebab', 'G', '17.95', 'Minced lamb seasoned with parsley, paprika & peppers, grilled over charcoal.'],
+      ['Chicken Beyti', 'G', '17.95', 'Minced chicken seasoned with parsley, paprika & peppers, grilled over charcoal.'],
+      ['Chicken Wings', 'D/G', '16.95', 'Marinated chicken wings grilled over charcoal.'],
+      ['Any 2 Combination', 'D/G', '18.95', 'Choice of lamb shish, chicken shish, Adana kebab or chicken beyti, grilled over charcoal.'],
+      ['Mixed Kebab', 'D/G', '20.95', 'Lamb shish, chicken shish & Adana kebab, grilled over charcoal.'],
+      ['Lamb Chops', 'D/G', '22.95', 'Marinated tender lamb chops grilled over charcoal.'],
+      ['Lamb Ribs', 'D/G', '18.95', 'Marinated tender lamb ribs grilled over charcoal.'],
+      ['Lamb Steak Kulbasti', 'D/G', '22.95', 'Marinated tender lamb steak grilled over charcoal.'],
+      ['Chicken Steak Kulbasti', 'D/G', '21.95', 'Marinated tender chicken steak grilled over charcoal.'],
+    ], special: ['La Mar Special', 'mixed grill for 1 · D/G', '30.00',
+      'A mixed selection of lamb shish, chicken shish, Adana kebab, chicken wings (4pcs), lamb ribs (2pcs) & lamb chop (1pc), grilled over charcoal.'] },
+    { title: 'Kids Dishes', keep: true, served: 'All served with chips and salad', list: [
+      ['Chicken Shish','8.95'],['Adana Shish','8.95'],['Chicken Wings','8.95'],['Chicken Nuggets','8.95'],['Fillet Strips','8.95'],
+    ]},
+    { title: 'Seafood Dishes', keep: true, served: 'All dishes served with mash potato and salad', items: [
+      ['Grilled Sea Bass', 'GF', '19.95', 'Marinated whole sea bass grilled over charcoal.'],
+      ['Grilled Salmon', 'GF', '20.95', 'Marinated salmon fillet grilled over charcoal.'],
+      ['Grilled King Prawns', 'GF', '21.95', 'Marinated jumbo prawns, shell on, grilled over charcoal.'],
+      ['Monkfish', 'GF', '20.95', 'Marinated monkfish on a skewer, grilled over charcoal.'],
+      ['Mixed Seafood', 'GF', '23.50', 'Skewered salmon, monkfish & shelled jumbo prawns with mushrooms & mixed peppers, grilled over charcoal.'],
+    ]},
+    { title: "Chef's Special", served: 'All dishes served with mixed rice and salad', items: [
+      ['Kleftico', 'lamb shank', '18.50', "Lamb slow cooked in the oven with baby potatoes, celery & carrots in chef's special sauce."],
+      ['Chicken à la Crème', 'D', '18.95', 'Fine sliced chicken breast in a creamy sauce with mixed peppers, mushrooms & baby potatoes, topped with Parmesan.'],
+      ['Chicken Casserole', 'spicy available', '18.95', 'Fine sliced chicken breast with mixed peppers, mushrooms, cherry tomatoes, onion & asparagus, topped with special tomato sauce.'],
+      ['Lamb Casserole', 'spicy available', '19.95', 'Fine sliced lamb with mixed peppers, mushrooms, cherry tomatoes, onion & asparagus, topped with special tomato sauce.'],
+      ['Mititi Kofte Casserole', 'spicy available', '20.95', 'Lamb meatballs gently cooked with mixed peppers, mushrooms, cherry tomatoes, onion & asparagus in special tomato sauce.'],
+      ['Prawn Casserole', 'spicy available', '20.95', 'Tiger prawns cooked with mushrooms, mixed peppers, cherry tomatoes, onion & asparagus in special tomato sauce.'],
+      ['Mixed Seafood Casserole', 'GF', '22.50', 'Mixed seafood cooked in a pan with mixed peppers, mushrooms, cherry tomatoes, onions & asparagus.'],
+      ['Meat Moussaka', 'D', '18.95', 'Layers of minced lamb, aubergine, potatoes & courgettes, topped with béchamel sauce & melted cheese.'],
+    ]},
+  ],
+  p4: [
+    { title: 'Yoghurt Dishes', served: 'All dishes served with mixed rice and salad', items: [
+      ['Chicken Shish with Yogurt', 'D/G', '18.95', "Grilled marinated chicken breast on toasted bread with chef's special sauce, yogurt & melted butter."],
+      ['Lamb Shish with Yogurt', 'D/G', '20.95', "Grilled marinated tender lamb on toasted bread with chef's special sauce, yogurt & melted butter."],
+      ['Iskender', 'D/G', '19.95', "Grilled minced lamb skewers on toasted bread with chef's special sauce, yogurt & melted butter."],
+      ['Lamb Sarma Beyti', 'D/G', '19.95', "Minced lamb kofta cooked over charcoal, wrapped in pitta & sliced, with yogurt, chef's special sauce & melted butter."],
+      ['Chicken Sarma Beyti', 'D/G', '19.95', "Chicken beyti cooked over charcoal, wrapped in pitta & sliced, with yogurt, chef's special sauce & melted butter."],
+      ['Ali Nazik', 'D · chicken or lamb', '19.95', 'Chargrilled aubergine with garlic & yogurt, topped with lamb or chicken shish.'],
+    ]},
+    { title: 'La Mar Signature', keep: true, items: [
+      ['Chicken Juliet', '', '21.95', 'Fine sliced chicken breast pan cooked with mixed vegetables, herbs & olive oil, served with mixed rice & salad.'],
+      ['Lamb Lava', '', '22.95', 'Fine sliced lamb cooked with mixed vegetables, herbs & olive oil, served with mixed rice & salad.'],
+      ['Cheesy Garlic Prawns', 'D/G', '24.95', 'Shelled king prawns cooked with garlic, parsley & melted cheddar, served with creamy mash & asparagus.'],
+    ]},
+    { title: 'Vegetarian', served: 'All dishes served with mixed rice and salad', items: [
+      ['Vegetarian Kebab', 'halloumi or humous', '16.00', "Marinated aubergine, mushrooms, courgette, peppers & onion cooked over charcoal, topped with chef's special tomato sauce."],
+      ['Imam Bayildi', '', '16.00', 'Ottoman classic of whole aubergine stuffed with onion, garlic & tomatoes, simmered in olive oil and served warm.'],
+      ['Falafel', 'G', '16.00', 'Deep fried chickpeas, parsley, onion, garlic, peppers & coriander, layered on humous.'],
+      ['Vegetarian Moussaka', 'D/G', '16.00', "Layers of roasted aubergine, potatoes, carrot, courgette & peppers with creamy béchamel and chef's special tomato sauce."],
+    ]},
+    { title: 'Burgers', served: 'All served with chips and salad', items: [
+      ['Southern Fried Chicken Burger', 'G', '16.00', 'Crispy fried chicken with applewood cheese, sliced tomato, caramelised red onion & gem lettuce.'],
+      ['Wagyu Beef Burger', 'G', '16.00', 'Homemade beef burger with applewood cheese, sliced tomato, caramelised red onion & gem lettuce.'],
+      ['Falafel & Halloumi Burger', 'G', '15.00', 'Homemade falafel with grilled halloumi, sliced tomato & gem lettuce.'],
+    ]},
+  ],
+};
+
+const platters = [
+  { name: 'Family Special Platter', min: 'Min 2–3 people', price: '65',
+    grill: '1 skewer lamb shish, 1 skewer chicken shish, 1 skewer Adana kebab, 1 skewer chicken beyti & chicken wings (7pcs), served with mixed rice & salad.' },
+  { name: 'Jumbo Family Special Platter', min: 'Min 4–5 people', price: '92',
+    grill: '1 skewer lamb shish, 1 skewer chicken shish, 1 skewer chicken beyti, 1 skewer Adana kebab, lamb chops (4pcs), lamb ribs (6pcs) & chicken wings (7pcs), served with mixed rice & salad.' },
+];
+
+const esc = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;');
+const item = ([n, tag, p, d, sig]) => `
+  <div class="item"><div class="top">
+    <span class="name">${esc(n)}${tag ? ` <span class="tag">(${esc(tag)})</span>` : ''}${sig ? ' <span class="sig">[La Mar Signature]</span>' : ''}</span>
+    <span class="price">£${p}</span></div>
+    <div class="desc">${esc(d)}</div></div>`;
+
+function section(s) {
+  let h = `<div class="section${s.keep ? ' keep' : ''}"><h2>${esc(s.title)}</h2>`;
+  if (s.served) h += `<span class="served">${esc(s.served)}</span>`;
+  if (s.items) h += s.items.map(item).join('');
+  if (s.special) h += `<div class="special">${item(s.special)}</div>`;
+  if (s.list) h += `<div class="list">${s.list.map(([n,p]) => `<span>${esc(n)}</span><span class="p">£${p}</span>`).join('')}</div>`;
+  return h + '</div>';
+}
+
+for (const id of ['p2','p3','p4'])
+  document.querySelector(`#${id} [data-flow]`).innerHTML = menu[id].map(section).join('');
+
+document.querySelector('#p4 .platters').innerHTML = platters.map(p => `<div class="platter"><h3>${p.name}</h3><div class="min">(${p.min})</div>
+    <h4>Mixed Cold Appetisers</h4><p>Humous, tarama, cacik, saksuka, babaganoush & beetroot tarator.</p>
+    <h4>Mixed Grill Platter</h4><p>${p.grill}</p><div class="pp">£${p.price}</div></div>`).join('');
+</script>
+</body>
+</html>
