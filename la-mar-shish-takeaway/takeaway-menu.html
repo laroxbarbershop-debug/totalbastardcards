@@ -96,23 +96,17 @@
   .list span { font-weight: 500; font-size: var(--name); text-transform: uppercase; letter-spacing: .03em; }
   .list span.p { text-align: right; }
 
-  .platter {
-    border: .35mm solid var(--gold); text-align: center; padding: 2mm 2.4mm 2.2mm;
-    break-inside: avoid; margin-bottom: 3mm; background: rgba(35,31,32,.6);
-  }
-  .platter h3 { font-weight: 500; font-size: 10pt; letter-spacing: .05em; color: var(--gold); text-transform: uppercase; line-height: 1.1; }
-  .platter .min { font-weight: 300; font-size: 7pt; color: var(--gold); letter-spacing: .08em; margin-bottom: 1.2mm; }
-  .platter h4 { font-weight: 500; font-size: 7.4pt; letter-spacing: .04em; text-transform: uppercase; margin-top: 1mm; }
-  .platter p { font-weight: 300; font-size: 6.6pt; line-height: 1.22; color: var(--muted); }
-  .platter .pp {
-    display: inline-block; margin-top: 1.4mm; border: .35mm solid var(--gold);
-    font-weight: 500; font-size: 10pt; padding: .3mm 4mm;
-  }
-
   /* ---------- back page ---------- */
   #p4 { display: flex; flex-direction: column; padding-bottom: 29mm; }
-  .platters { display: grid; grid-template-columns: 1fr 1fr; gap: 6mm; margin: auto 0; }
-  .platters .platter { margin: 0; }
+  .offers { margin-top: auto; }
+  .offers h2 { font-size: 12.5pt; }
+  .tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4mm; }
+  .tiles figure { text-align: center; }
+  .tiles img { display: block; width: 100%; aspect-ratio: 875 / 468; object-fit: cover; border: .3mm solid var(--gold); }
+  .tiles figcaption { font-weight: 300; font-size: 6.4pt; line-height: 1.25; color: var(--muted); margin-top: 1.1mm; }
+  .tiles figcaption b { display: block; font-weight: 500; font-size: 7.8pt; letter-spacing: .05em; text-transform: uppercase; color: var(--gold); }
+  .offers .book { text-align: center; font-weight: 400; font-size: 6.8pt; letter-spacing: .08em; text-transform: uppercase; margin-top: 1.8mm; }
+  .offers .book b { color: var(--gold); font-weight: 500; }
   .strip-logo { width: 21mm; mix-blend-mode: lighten; flex: none; }
   .order-strip {
     position: absolute; left: 8.5mm; right: 8.5mm; bottom: 7mm;
@@ -154,7 +148,15 @@
 
   <div class="panel left" id="p4">
     <div class="cols" data-flow></div>
-    <div class="platters"></div>
+    <div class="offers">
+      <h2>Also at La Mar Shish</h2>
+      <div class="tiles">
+        <figure><img src="assets/promo-happy-hour.jpg" alt="Happy hour on cocktails"><figcaption><b>Happy Hour</b>Cocktails · weekdays 1pm–5pm</figcaption></figure>
+        <figure><img src="assets/promo-lunch.jpg" alt="Lunch menu £12.99"><figcaption><b>Lunch Special</b>2 courses for £12.99</figcaption></figure>
+        <figure><img src="assets/promo-brunch.jpg" alt="Bottomless prosecco brunch"><figcaption><b>Bottomless Brunch</b>2 hours unlimited prosecco &amp; 2 course set menu</figcaption></figure>
+      </div>
+      <p class="book">Dine in with us &nbsp;·&nbsp; book a table at <b>www.lamarshish.com</b></p>
+    </div>
     <div class="order-strip">
       <div class="strip-text">
       <div class="call">CALL TO ORDER &nbsp;<b>0170 284 4214</b></div>
@@ -287,15 +289,12 @@ const menu = {
     { title: 'Kids Dishes', keep: true, served: 'All served with chips and salad', list: [
       ['Chicken Shish','8.95'],['Adana Shish','8.95'],['Chicken Wings','8.95'],['Chicken Nuggets','8.95'],['Fillet Strips','8.95'],
     ]},
+    { title: 'Family Platters', keep: true, items: [
+      ['Family Special Platter', 'serves 2–3', '65.00', 'Mixed cold appetisers (humous, tarama, cacik, saksuka, babaganoush & beetroot tarator) plus a mixed grill of lamb shish, chicken shish, Adana kebab & chicken beyti (1 skewer each) and chicken wings (7pcs), served with mixed rice & salad.'],
+      ['Jumbo Family Special Platter', 'serves 4–5', '92.00', 'Mixed cold appetisers (humous, tarama, cacik, saksuka, babaganoush & beetroot tarator) plus a mixed grill of lamb shish, chicken shish, chicken beyti & Adana kebab (1 skewer each), lamb chops (4pcs), lamb ribs (6pcs) and chicken wings (7pcs), served with mixed rice & salad.'],
+    ]},
   ],
 };
-
-const platters = [
-  { name: 'Family Special Platter', min: 'Min 2–3 people', price: '65',
-    grill: '1 skewer lamb shish, 1 skewer chicken shish, 1 skewer Adana kebab, 1 skewer chicken beyti & chicken wings (7pcs), served with mixed rice & salad.' },
-  { name: 'Jumbo Family Special Platter', min: 'Min 4–5 people', price: '92',
-    grill: '1 skewer lamb shish, 1 skewer chicken shish, 1 skewer chicken beyti, 1 skewer Adana kebab, lamb chops (4pcs), lamb ribs (6pcs) & chicken wings (7pcs), served with mixed rice & salad.' },
-];
 
 const esc = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;');
 const item = ([n, tag, p, d, sig]) => `
@@ -316,9 +315,6 @@ function section(s) {
 for (const id of ['p2','p3','p4'])
   document.querySelector(`#${id} [data-flow]`).innerHTML = menu[id].map(section).join('');
 
-document.querySelector('#p4 .platters').innerHTML = platters.map(p => `<div class="platter"><h3>${p.name}</h3><div class="min">(${p.min})</div>
-    <h4>Mixed Cold Appetisers</h4><p>Humous, tarama, cacik, saksuka, babaganoush & beetroot tarator.</p>
-    <h4>Mixed Grill Platter</h4><p>${p.grill}</p><div class="pp">£${p.price}</div></div>`).join('');
 </script>
 </body>
 </html>

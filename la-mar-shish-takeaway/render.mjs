@@ -16,7 +16,7 @@ const report = await page.evaluate(() => [...document.querySelectorAll('.panel')
   const pr = p.getBoundingClientRect();
   const strip = p.querySelector('.order-strip');
   const limit = strip ? strip.getBoundingClientRect().top - 2 : pr.bottom - parseFloat(getComputedStyle(p).paddingBottom);
-  const bottoms = [...flow.parentElement.querySelectorAll('.item,.list,.platter,h2')].map(e => e.getBoundingClientRect().bottom);
+  const bottoms = [...flow.parentElement.querySelectorAll('.item,.list,.tiles,h2')].map(e => e.getBoundingClientRect().bottom);
   const rightEdge = Math.max(...[...flow.querySelectorAll('*')].map(e => e.getBoundingClientRect().right));
   const mm = 96 / 25.4;
   return { id: p.id, spareMm: +((limit - Math.max(...bottoms)) / mm).toFixed(1),
