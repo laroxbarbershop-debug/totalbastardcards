@@ -110,7 +110,8 @@
   }
 
   /* ---------- back page ---------- */
-  .platters { display: grid; grid-template-columns: 1fr 1fr; gap: 6mm; margin-top: 2.5mm; }
+  #p4 { display: flex; flex-direction: column; padding-bottom: 29mm; }
+  .platters { display: grid; grid-template-columns: 1fr 1fr; gap: 6mm; margin: auto 0; }
   .platters .platter { margin: 0; }
   .strip-logo { width: 21mm; mix-blend-mode: lighten; flex: none; }
   .order-strip {
@@ -245,8 +246,10 @@ const menu = {
       ['Chicken Steak Kulbasti', 'D/G', '21.95', 'Marinated tender chicken steak grilled over charcoal.'],
     ], special: ['La Mar Special', 'mixed grill for 1 · D/G', '30.00',
       'A mixed selection of lamb shish, chicken shish, Adana kebab, chicken wings (4pcs), lamb ribs (2pcs) & lamb chop (1pc), grilled over charcoal.'] },
-    { title: 'Kids Dishes', keep: true, served: 'All served with chips and salad', list: [
-      ['Chicken Shish','8.95'],['Adana Shish','8.95'],['Chicken Wings','8.95'],['Chicken Nuggets','8.95'],['Fillet Strips','8.95'],
+    { title: 'La Mar Signature', keep: true, items: [
+      ['Chicken Juliet', '', '21.95', 'Fine sliced chicken breast pan cooked with mixed vegetables, herbs & olive oil, served with mixed rice & salad.'],
+      ['Lamb Lava', '', '22.95', 'Fine sliced lamb cooked with mixed vegetables, herbs & olive oil, served with mixed rice & salad.'],
+      ['Cheesy Garlic Prawns', 'D/G', '24.95', 'Shelled king prawns cooked with garlic, parsley & melted cheddar, served with creamy mash & asparagus.'],
     ]},
     { title: 'Seafood Dishes', keep: true, served: 'All dishes served with mash potato and salad', items: [
       ['Grilled Sea Bass', 'GF', '19.95', 'Marinated whole sea bass grilled over charcoal.'],
@@ -275,21 +278,14 @@ const menu = {
       ['Chicken Sarma Beyti', 'D/G', '19.95', "Chicken beyti cooked over charcoal, wrapped in pitta & sliced, with yogurt, chef's special sauce & melted butter."],
       ['Ali Nazik', 'D · chicken or lamb', '19.95', 'Chargrilled aubergine with garlic & yogurt, topped with lamb or chicken shish.'],
     ]},
-    { title: 'La Mar Signature', keep: true, items: [
-      ['Chicken Juliet', '', '21.95', 'Fine sliced chicken breast pan cooked with mixed vegetables, herbs & olive oil, served with mixed rice & salad.'],
-      ['Lamb Lava', '', '22.95', 'Fine sliced lamb cooked with mixed vegetables, herbs & olive oil, served with mixed rice & salad.'],
-      ['Cheesy Garlic Prawns', 'D/G', '24.95', 'Shelled king prawns cooked with garlic, parsley & melted cheddar, served with creamy mash & asparagus.'],
-    ]},
     { title: 'Vegetarian', served: 'All dishes served with mixed rice and salad', items: [
       ['Vegetarian Kebab', 'halloumi or humous', '16.00', "Marinated aubergine, mushrooms, courgette, peppers & onion cooked over charcoal, topped with chef's special tomato sauce."],
       ['Imam Bayildi', '', '16.00', 'Ottoman classic of whole aubergine stuffed with onion, garlic & tomatoes, simmered in olive oil and served warm.'],
       ['Falafel', 'G', '16.00', 'Deep fried chickpeas, parsley, onion, garlic, peppers & coriander, layered on humous.'],
       ['Vegetarian Moussaka', 'D/G', '16.00', "Layers of roasted aubergine, potatoes, carrot, courgette & peppers with creamy béchamel and chef's special tomato sauce."],
     ]},
-    { title: 'Burgers', served: 'All served with chips and salad', items: [
-      ['Southern Fried Chicken Burger', 'G', '16.00', 'Crispy fried chicken with applewood cheese, sliced tomato, caramelised red onion & gem lettuce.'],
-      ['Wagyu Beef Burger', 'G', '16.00', 'Homemade beef burger with applewood cheese, sliced tomato, caramelised red onion & gem lettuce.'],
-      ['Falafel & Halloumi Burger', 'G', '15.00', 'Homemade falafel with grilled halloumi, sliced tomato & gem lettuce.'],
+    { title: 'Kids Dishes', keep: true, served: 'All served with chips and salad', list: [
+      ['Chicken Shish','8.95'],['Adana Shish','8.95'],['Chicken Wings','8.95'],['Chicken Nuggets','8.95'],['Fillet Strips','8.95'],
     ]},
   ],
 };
